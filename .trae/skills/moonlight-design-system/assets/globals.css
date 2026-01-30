@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 背景 */
+    --background: 0 0% 100%;
+    --background-gradient-start: #667eea;
+    --background-gradient-end: #764ba2;
+    
+    /* 前景 */
+    --foreground: 222 47% 11%;
+    --foreground-muted: 215 16% 47%;
+    
+    /* 卡片 */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    /* 弹出层 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* 主色 - 紫色 */
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* 次要 */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    
+    /* 静音 */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    /* 强调 */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    
+    /* 破坏性 */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* 边框 */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 258 90% 66%;
+    
+    /* 圆角 */
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* 背景 */
+    --background: 222 47% 11%;
+    --background-gradient-start: #1a1a2e;
+    --background-gradient-end: #16213e;
+    
+    /* 前景 */
+    --foreground: 210 40% 98%;
+    --foreground-muted: 215 20% 65%;
+    
+    /* 卡片 */
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+    
+    /* 弹出层 */
+    --popover: 222 47% 15%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* 主色 - 亮紫 */
+    --primary: 263 70% 66%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* 次要 */
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    
+    /* 静音 */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    
+    /* 强调 */
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* 破坏性 */
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* 边框 */
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 263 70% 66%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* 渐变背景动画 */
+  .gradient-bg {
+    background: linear-gradient(
+      -45deg,
+      var(--background-gradient-start),
+      var(--background-gradient-end),
+      var(--background-gradient-start)
+    );
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+  
+  /* 毛玻璃效果 */
+  .glass {
+    @apply bg-background/80 backdrop-blur-lg;
+  }
+  
+  .glass-dark {
+    @apply bg-background/60 backdrop-blur-lg;
+  }
+  
+  /* 文字渐变 */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600;
+  }
+  
+  /* 卡片悬停效果 */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* 按钮悬停效果 */
+  .btn-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95;
+  }
+  
+  /* 输入框聚焦效果 */
+  .input-focus {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary;
+  }
+  
+  /* 动画延迟 */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-500 { animation-delay: 500ms; }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* 选中文本样式 */
+::selection {
+  @apply bg-primary/30 text-foreground;
+}
