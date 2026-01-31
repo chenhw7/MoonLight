@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LoginPage } from '@/pages/Login'
 
 function App() {
   return (
@@ -23,13 +24,15 @@ function App() {
                   <p className="text-center text-muted-foreground">
                     欢迎来到 MoonLight
                   </p>
-                  <Button className="w-full">开始使用</Button>
+                  <Button className="w-full" onClick={() => window.location.href = '/login'}>
+                    开始使用
+                  </Button>
                 </CardContent>
               </Card>
             </div>
           } 
         />
-        <Route path="/login" element={<div>Login Page (TODO)</div>} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </div>
   )

@@ -1,0 +1,59 @@
+/**
+ * 认证相关 API
+ *
+ * 提供登录、注册、验证码等接口
+ */
+
+import { api } from './api';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  CheckEmailResponse,
+  SendCodeRequest,
+  ApiResponse,
+} from '@/types/auth';
+
+export const authApi = {
+  /**
+   * 检查邮箱是否存在
+   */
+  checkEmail: (email: string) =>
+    api.post<ApiResponse<CheckEmailResponse>>('/auth/check-email', { email }),
+
+  /**
+   * 发送验证码
+   */
+  sendCode: (data: SendCodeRequest) =>
+    api.post<ApiResponse<void>>('/auth/send-code', data),
+
+  /**
+   * 用户登录
+   */
+  login: (data: LoginRequest) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/login', data),
+
+  /**
+   * 用户注册
+   */
+  register: (data: RegisterRequest) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/register', data),
+
+  /**
+   * 重置密码
+   */
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    api.post<ApiResponse<void>>('/auth/reset-password', {
+      email,
+      code,
+      newPassword,
+    }),
+
+  /**
+   * 刷新令牌
+   */
+  refreshToken: (refreshToken: string) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken }),
+};
+
+export default authApi;

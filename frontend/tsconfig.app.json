@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false
+  },
+  "include": ["src", "e2e", "*.config.ts", "*.config.js"]
+}

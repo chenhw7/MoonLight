@@ -474,6 +474,91 @@ pytest -n auto
 - 测试方法: `test_*` (Python) 或 `it('', () => {})` (TS)
 - 测试描述: 使用 Given-When-Then 或 应该...的格式
 
+## 测试编写后验证流程（重要！）
+
+编写测试代码后，**必须**执行以下验证步骤：
+
+### 1. 类型检查
+```bash
+# TypeScript 类型检查
+npx tsc --noEmit
+```
+
+### 2. 代码规范检查
+```bash
+# ESLint 检查
+npm run lint
+```
+
+### 3. 测试运行验证
+```bash
+# 运行测试
+npm run test
+
+# 检查覆盖率
+npm run test:coverage
+```
+
+### 4. 常见错误检查清单
+
+#### Vitest 测试文件
+- [ ] 是否导入了 `describe`, `it`, `expect`, `vi`, `beforeEach`, `afterEach`
+- [ ] `vi.spyOn` 类型是否正确（避免使用复杂的 ReturnType 推断）
+- [ ] 是否清理了 mock (`vi.clearAllMocks()`)
+- [ ] 是否恢复了 spy (`vi.restoreAllMocks()`)
+
+#### 组件测试
+- [ ] 是否正确渲染组件
+- [ ] 是否等待异步操作 (`waitFor`, `findBy*`)
+- [ ] 是否清理 DOM
+
+#### 类型安全
+- [ ] 避免使用 `any` 类型
+- [ ] 确保所有变量都有正确类型
+- [ ] 确保导入完整
+
+## 经验教训
+
+### ❌ 常见错误
+
+1. **忘记导入 Vitest 函数**
+   ```typescript
+   // ❌ 错误 - 缺少导入
+   beforeEach(() => { ... })
+   
+   // ✅ 正确
+   import { beforeEach } from 'vitest';
+   beforeEach(() => { ... })
+   ```
+
+2. **vi.spyOn 类型问题**
+   ```typescript
+   // ❌ 错误 - 复杂类型推断
+   let spy: ReturnType<typeof vi.spyOn>;
+   
+   // ✅ 正确 - 使用具体类型
+   let consoleLogSpy: ReturnType<typeof vi.spyOn<typeof console, 'log'>>;
+   // 或直接使用
+   const spy = vi.spyOn(console, 'log');
+   ```
+
+3. **没有验证就提交**
+   ```bash
+   # ❌ 错误 - 直接提交
+   git add . && git commit -m "add tests"
+   
+   # ✅ 正确 - 先验证
+   npx tsc --noEmit && npm run lint && npm run test
+   git add . && git commit -m "add tests"
+   ```
+
+### ✅ 最佳实践
+
+1. **编写测试 → 立即验证 → 修复问题 → 提交**
+2. **使用 VS Code 的 TypeScript 插件实时检查类型**
+3. **配置 pre-commit hook 自动运行检查**
+4. **CI/CD 中强制执行类型检查和测试**
+
 ## Assets 使用
 
 使用 `assets/` 目录下的配置文件：
