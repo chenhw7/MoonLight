@@ -25,22 +25,30 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 安装运行时依赖
+# 安装运行时依赖（包括 bash 和 postgresql-client）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
+    bash \
     && rm -rf /var/lib/apt/lists/*
 
 # 从构建阶段复制虚拟环境
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# 设置 Python 路径
+ENV PYTHONPATH="/app"
+
 # 复制应用代码
 COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
+COPY entrypoint.sh .
 
 # 创建日志目录
 RUN mkdir -p logs
+
+# 赋予入口脚本执行权限
+RUN chmod +x entrypoint.sh
 
 # 暴露端口
 EXPOSE 8000
@@ -50,4 +58,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 # 启动命令
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["./entrypoint.sh"]
