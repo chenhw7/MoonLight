@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createLogger } from '@/utils/logger';
+import { authApi } from '@/services/auth';
 
 const logger = createLogger('EmailStep');
 
@@ -42,14 +43,26 @@ export function EmailStep({ onSubmit }: EmailStepProps) {
     setError('');
 
     try {
-      // TODO: 调用 API 检查邮箱是否存在
-      // const response = await authApi.checkEmail(email);
-      // const exists = response.data.exists;
-
-      // 临时模拟
-      const exists = false;
+      // 检查邮箱是否存在
+      const response = await authApi.checkEmail(email);
+      const exists = response.data.exists;
 
       logger.info('Email check result', { email, exists });
+
+      // 如果是新用户（邮箱不存在），发送验证码
+      if (!exists) {
+        try {
+          await authApi.sendCode({ email, code_type: 'register' });
+          logger.info('Verification code sent', { email });
+        } catch (sendErr) {
+          const errorMessage = sendErr instanceof Error ? sendErr.message : 'Unknown error';
+          logger.error('Send verification code failed', { error: errorMessage });
+          setError('发送验证码失败，请重试');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       onSubmit(email, exists);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';

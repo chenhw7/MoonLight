@@ -11,6 +11,8 @@ import type {
   AuthResponse,
   CheckEmailResponse,
   SendCodeRequest,
+  VerifyCodeRequest,
+  VerifyCodeResponse,
   ApiResponse,
 } from '@/types/auth';
 
@@ -26,6 +28,12 @@ export const authApi = {
    */
   sendCode: (data: SendCodeRequest) =>
     api.post<ApiResponse<void>>('/auth/send-code', data),
+
+  /**
+   * 验证验证码
+   */
+  verifyCode: (data: VerifyCodeRequest) =>
+    api.post<ApiResponse<VerifyCodeResponse>>('/auth/verify-code', data),
 
   /**
    * 用户登录

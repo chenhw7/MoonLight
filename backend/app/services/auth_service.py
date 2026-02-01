@@ -338,6 +338,18 @@ class AuthService:
 
         logger.info("Password reset successful", user_id=user.id)
 
+    async def check_email_exists(self, email: str) -> bool:
+        """检查邮箱是否已存在。
+
+        Args:
+            email: 邮箱地址
+
+        Returns:
+            bool: 邮箱已存在返回 True，否则返回 False
+        """
+        user = await self._get_user_by_email(email)
+        return user is not None
+
     async def _get_user_by_email(self, email: str) -> Optional[User]:
         """通过邮箱获取用户。
 
@@ -376,10 +388,38 @@ class AuthService:
         result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
+    async def verify_code(
+        self, email: str, code: str, code_type: str
+    ) -> bool:
+        """验证验证码（公共方法，不标记为已使用）。
+
+        Args:
+            email: 邮箱地址
+            code: 验证码
+            code_type: 验证码类型
+
+        Returns:
+            bool: 验证成功返回 True
+        """
+        result = await self.db.execute(
+            select(VerificationCode)
+            .where(VerificationCode.email == email)
+            .where(VerificationCode.code == code)
+            .where(VerificationCode.code_type == code_type)
+            .where(VerificationCode.is_used == False)
+            .order_by(VerificationCode.created_at.desc())
+        )
+        verification = result.scalar_one_or_none()
+
+        if not verification or not verification.is_valid():
+            return False
+
+        return True
+
     async def _verify_code(
         self, email: str, code: str, code_type: str
     ) -> bool:
-        """验证验证码。
+        """验证验证码并标记为已使用（内部方法）。
 
         Args:
             email: 邮箱地址

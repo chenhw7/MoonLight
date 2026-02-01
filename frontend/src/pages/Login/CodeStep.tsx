@@ -4,6 +4,8 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createLogger } from '@/utils/logger';
+import { authApi } from '@/services/auth';
+import type { ApiResponse } from '@/types/auth';
 
 const logger = createLogger('CodeStep');
 
@@ -99,14 +101,26 @@ export function CodeStep({
     setError('');
 
     try {
-      // TODO: 验证验证码
-      // await authApi.verifyCode({ email, code: fullCode });
+      // 先验证验证码是否正确
+      const response = await authApi.verifyCode({
+        email,
+        code: fullCode,
+        code_type: 'register',
+      }) as unknown as ApiResponse<{ valid: boolean }>;
 
-      onSubmit(fullCode);
+      if (response.data.valid) {
+        logger.info('Code verified successfully', { email });
+        onSubmit(fullCode);
+      } else {
+        logger.warn('Invalid verification code', { email });
+        setError('验证码错误或已过期，请重试');
+        setCode(new Array(CODE_LENGTH).fill(''));
+        inputRefs.current[0]?.focus();
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       logger.error('Code verification failed', { error: errorMessage });
-      setError('验证码错误，请重试');
+      setError('验证码验证失败，请重试');
       setCode(new Array(CODE_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
     } finally {

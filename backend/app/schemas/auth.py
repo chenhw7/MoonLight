@@ -315,3 +315,81 @@ class PasswordResetResponse(BaseModel):
             }
         },
     )
+
+
+class CheckEmailRequest(BaseModel):
+    """检查邮箱请求模型。
+
+    Attributes:
+        email: 邮箱地址
+    """
+
+    email: EmailStr
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "user@example.com",
+            }
+        },
+    )
+
+
+class CheckEmailResponse(BaseModel):
+    """检查邮箱响应模型。
+
+    Attributes:
+        exists: 邮箱是否已存在
+    """
+
+    exists: bool
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "exists": True,
+            }
+        },
+    )
+
+
+class VerifyCodeRequest(BaseModel):
+    """验证验证码请求模型。
+
+    Attributes:
+        email: 邮箱地址
+        code: 验证码
+        code_type: 验证码类型（register/reset_password）
+    """
+
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6)
+    code_type: str = Field(..., pattern="^(register|reset_password)$")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "user@example.com",
+                "code": "123456",
+                "code_type": "register",
+            }
+        },
+    )
+
+
+class VerifyCodeResponse(BaseModel):
+    """验证验证码响应模型。
+
+    Attributes:
+        valid: 验证码是否有效
+    """
+
+    valid: bool
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "valid": True,
+            }
+        },
+    )

@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { createLogger } from '@/utils/logger';
+import { authApi } from '@/services/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { EmailStep } from './EmailStep';
 import { PasswordStep } from './PasswordStep';
@@ -67,9 +68,15 @@ export function LoginPage() {
     // TODO: 实现忘记密码流程
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     logger.info('Resend code', { email });
-    // TODO: 调用重新发送验证码 API
+    try {
+      await authApi.sendCode({ email, code_type: 'register' });
+      logger.info('Resend code successful', { email });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Resend code failed', { error: errorMessage });
+    }
   };
 
   const getStepTitle = () => {
@@ -146,7 +153,7 @@ export function LoginPage() {
           )}
 
           {step === 'register' && (
-            <RegisterStep email={email} onSubmit={handleRegisterSubmit} />
+            <RegisterStep email={email} code={verifiedCode} onSubmit={handleRegisterSubmit} />
           )}
         </CardContent>
       </Card>

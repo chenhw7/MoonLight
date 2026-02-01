@@ -17,6 +17,8 @@ from app.core.exceptions import (
 )
 from app.core.logging import get_logger
 from app.schemas.auth import (
+    CheckEmailRequest,
+    CheckEmailResponse,
     LoginRequest,
     LoginResponse,
     PasswordResetRequest,
@@ -26,6 +28,8 @@ from app.schemas.auth import (
     UserCreate,
     VerificationCodeRequest,
     VerificationCodeResponse,
+    VerifyCodeRequest,
+    VerifyCodeResponse,
 )
 from app.schemas.common import ErrorResponse, ResponseModel
 from app.services.auth_service import AuthService
@@ -187,10 +191,17 @@ async def refresh_token(
 
 
 @router.post(
-    "/verification-code",
+    "/send-code",
     response_model=ResponseModel[VerificationCodeResponse],
     summary="发送验证码",
     description="发送邮箱验证码，用于注册或密码重置",
+)
+@router.post(
+    "/verification-code",
+    response_model=ResponseModel[VerificationCodeResponse],
+    summary="发送验证码（兼容旧路径）",
+    description="发送邮箱验证码，用于注册或密码重置",
+    include_in_schema=False,
 )
 async def send_verification_code(
     request: Request,
@@ -299,6 +310,105 @@ async def reset_password(
         logger.error(
             "API: reset password failed",
             email=reset_data.email,
+            error=e.message,
+        )
+        raise HTTPException(status_code=e.status_code, detail=e.to_dict())
+
+
+@router.post(
+    "/check-email",
+    response_model=ResponseModel[CheckEmailResponse],
+    summary="检查邮箱",
+    description="检查邮箱地址是否已注册",
+)
+async def check_email(
+    request: Request,
+    check_request: CheckEmailRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> ResponseModel[CheckEmailResponse]:
+    """检查邮箱接口。
+
+    检查指定邮箱是否已被注册。
+
+    Args:
+        request: FastAPI 请求对象
+        check_request: 检查邮箱请求数据
+        auth_service: 认证服务实例
+
+    Returns:
+        ResponseModel[CheckEmailResponse]: 包含邮箱是否存在
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    logger.info(
+        "API: check email called",
+        email=check_request.email,
+        client_ip=client_ip,
+    )
+
+    try:
+        exists = await auth_service.check_email_exists(check_request.email)
+        logger.info(
+            "API: check email result",
+            email=check_request.email,
+            exists=exists,
+        )
+        return ResponseModel(data=CheckEmailResponse(exists=exists))
+    except AppException as e:
+        logger.error(
+            "API: check email failed",
+            email=check_request.email,
+            error=e.message,
+        )
+        raise HTTPException(status_code=e.status_code, detail=e.to_dict())
+
+
+@router.post(
+    "/verify-code",
+    response_model=ResponseModel[VerifyCodeResponse],
+    summary="验证验证码",
+    description="验证邮箱验证码是否有效",
+)
+async def verify_code(
+    request: Request,
+    verify_request: VerifyCodeRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> ResponseModel[VerifyCodeResponse]:
+    """验证验证码接口。
+
+    验证指定邮箱的验证码是否有效。
+
+    Args:
+        request: FastAPI 请求对象
+        verify_request: 验证验证码请求数据
+        auth_service: 认证服务实例
+
+    Returns:
+        ResponseModel[VerifyCodeResponse]: 包含验证结果
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    logger.info(
+        "API: verify code called",
+        email=verify_request.email,
+        code_type=verify_request.code_type,
+        client_ip=client_ip,
+    )
+
+    try:
+        is_valid = await auth_service.verify_code(
+            verify_request.email,
+            verify_request.code,
+            verify_request.code_type,
+        )
+        logger.info(
+            "API: verify code result",
+            email=verify_request.email,
+            valid=is_valid,
+        )
+        return ResponseModel(data=VerifyCodeResponse(valid=is_valid))
+    except AppException as e:
+        logger.error(
+            "API: verify code failed",
+            email=verify_request.email,
             error=e.message,
         )
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())

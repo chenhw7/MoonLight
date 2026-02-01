@@ -18,7 +18,7 @@ export interface RegisterRequest {
   email: string;
   username: string;
   password: string;
-  code: string;
+  verification_code: string;
 }
 
 export interface AuthResponse {
@@ -33,7 +33,17 @@ export interface CheckEmailResponse {
 
 export interface SendCodeRequest {
   email: string;
-  type: 'register' | 'reset_password';
+  code_type: 'register' | 'reset_password';
+}
+
+export interface VerifyCodeRequest {
+  email: string;
+  code: string;
+  code_type: 'register' | 'reset_password';
+}
+
+export interface VerifyCodeResponse {
+  valid: boolean;
 }
 
 export interface ApiResponse<T> {

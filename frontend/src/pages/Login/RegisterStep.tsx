@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createLogger } from '@/utils/logger';
+import { authApi } from '@/services/auth';
 
 const logger = createLogger('RegisterStep');
 
 interface RegisterStepProps {
   email: string;
+  code: string;
   onSubmit: (username: string, password: string) => void;
 }
 
@@ -18,7 +20,7 @@ interface RegisterStepProps {
  *
  * 新用户设置用户名和密码
  */
-export function RegisterStep({ email, onSubmit }: RegisterStepProps) {
+export function RegisterStep({ email, code, onSubmit }: RegisterStepProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -73,14 +75,14 @@ export function RegisterStep({ email, onSubmit }: RegisterStepProps) {
     setErrors({});
 
     try {
-      // TODO: 调用注册 API
-      // const response = await authApi.register({
-      //   email,
-      //   username,
-      //   password,
-      //   code,
-      // });
+      const response = await authApi.register({
+        email,
+        username,
+        password,
+        verification_code: code,
+      });
 
+      logger.info('Registration successful', { email, username });
       onSubmit(username, password);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
