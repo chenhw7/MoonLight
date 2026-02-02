@@ -6,13 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createLogger } from '@/utils/logger';
 import { authApi } from '@/services/auth';
+import { useAuthStore } from '@/stores/authStore';
+import type { AuthResponse, User as UserType, ApiResponse } from '@/types/auth';
 
 const logger = createLogger('RegisterStep');
 
 interface RegisterStepProps {
   email: string;
   code: string;
-  onSubmit: (username: string, password: string) => void;
+  onSubmit: (username: string, password: string, user: UserType, accessToken: string, refreshToken: string) => void;
 }
 
 /**
@@ -80,10 +82,13 @@ export function RegisterStep({ email, code, onSubmit }: RegisterStepProps) {
         username,
         password,
         verification_code: code,
-      });
+      }) as unknown as ApiResponse<AuthResponse>;
 
-      logger.info('Registration successful', { email, username });
-      onSubmit(username, password);
+      const { user, accessToken, refreshToken } = response.data;
+      useAuthStore.getState().setAuth(user, accessToken, refreshToken);
+      
+      logger.info('Registration successful', { userId: user.id, email: user.email });
+      onSubmit(username, password, user, accessToken, refreshToken);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       logger.error('Registration failed', { error: errorMessage });

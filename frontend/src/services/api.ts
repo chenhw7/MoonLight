@@ -67,12 +67,23 @@ api.interceptors.response.use(
 
     // 处理 401 未授权错误
     if (response?.status === 401) {
+      const currentPath = window.location.pathname;
+      const isAuthEndpoint = config?.url?.includes('/auth/');
+      const isLoginPage = currentPath === '/login';
+
+      // 如果是登录相关接口或已在登录页，不自动跳转，让调用方处理错误
+      if (isAuthEndpoint || isLoginPage) {
+        return Promise.reject(error);
+      }
+
       // 清除本地存储的 token
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
 
       // 跳转到登录页
-      window.location.href = '/login';
+      if (currentPath !== '/login') {
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

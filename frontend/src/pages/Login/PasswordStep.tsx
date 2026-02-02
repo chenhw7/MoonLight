@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createLogger } from '@/utils/logger';
+import { authApi } from '@/services/auth';
+import { useAuthStore } from '@/stores/authStore';
+import type { AuthResponse, ApiResponse } from '@/types/auth';
 
 const logger = createLogger('PasswordStep');
 
 interface PasswordStepProps {
   email: string;
-  onSubmit: (password: string) => void;
+  onSubmit: (password: string, user: { id: number; email: string; username: string }, accessToken: string, refreshToken: string) => void;
   onBack: () => void;
   onForgotPassword: () => void;
 }
@@ -44,15 +47,16 @@ export function PasswordStep({
     setError('');
 
     try {
-      // TODO: 调用登录 API
-      // const response = await authApi.login({ email, password });
-      // const { user, accessToken, refreshToken } = response.data;
-      // useAuthStore.getState().setAuth(user, accessToken, refreshToken);
+      const response = await authApi.login({ email, password }) as unknown as ApiResponse<AuthResponse>;
+      const { user, accessToken, refreshToken } = response.data;
+      
+      useAuthStore.getState().setAuth(user, accessToken, refreshToken);
+      logger.info('Login successful', { userId: user.id, email: user.email });
 
-      onSubmit(password);
+      onSubmit(password, user, accessToken, refreshToken);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      logger.error('Login failed', { error: errorMessage });
+      logger.error('Login failed', { error: errorMessage, email });
       setError('邮箱或密码错误');
     } finally {
       setIsLoading(false);

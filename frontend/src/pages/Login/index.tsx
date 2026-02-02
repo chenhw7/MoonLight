@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Moon } from 'lucide-react';
 
 import {
@@ -26,6 +27,7 @@ type LoginStep = 'email' | 'password' | 'code' | 'register';
  * 统一的登录/注册入口，根据邮箱是否存在自动切换流程
  */
 export function LoginPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState<LoginStep>('email');
   const [email, setEmail] = useState('');
   const [verifiedCode, setVerifiedCode] = useState('');
@@ -44,17 +46,25 @@ export function LoginPage() {
     logger.info('Code verified', { email });
   };
 
-  const handleRegisterSubmit = (username: string, _password: string) => {
-    // verifiedCode 用于注册时验证，后续会传递给 API
-    logger.info('Registration completed', { email, username, code: verifiedCode });
-    // TODO: 调用注册 API 并跳转到主页
-    // navigate('/');
+  const handleRegisterSubmit = (
+    username: string,
+    _password: string,
+    user: { id: number; email: string; username: string },
+    _accessToken: string,
+    _refreshToken: string
+  ) => {
+    logger.info('Registration completed', { email, username, userId: user.id });
+    navigate('/home');
   };
 
-  const handlePasswordSubmit = (_password: string) => {
-    logger.info('Login completed', { email });
-    // TODO: 调用登录 API 并跳转到主页
-    // navigate('/');
+  const handlePasswordSubmit = (
+    _password: string,
+    user: { id: number; email: string; username: string },
+    _accessToken: string,
+    _refreshToken: string
+  ) => {
+    logger.info('Login completed', { email, userId: user.id });
+    navigate('/home');
   };
 
   const handleBackToEmail = () => {

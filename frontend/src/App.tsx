@@ -1,41 +1,135 @@
-import { Routes, Route } from 'react-router-dom'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LoginPage } from '@/pages/Login'
+/**
+ * 应用根组件
+ *
+ * 配置应用路由，包括公开路由和受保护路由
+ */
 
-function App() {
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import { createLogger } from '@/utils/logger';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoginPage } from '@/pages/Login';
+import { Layout } from '@/components/layout/Layout';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { HomePage } from '@/pages/Home';
+
+const logger = createLogger('App');
+
+function LandingPage() {
   return (
-    <div className="min-h-screen">
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-      
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
-              <Card className="w-full max-w-md animate-fade-in">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">🌙 MoonLight</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-center text-muted-foreground">
-                    欢迎来到 MoonLight
-                  </p>
-                  <Button className="w-full" onClick={() => window.location.href = '/login'}>
-                    开始使用
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          } 
-        />
-        <Route path="/login" element={<LoginPage />} />
-      </Routes>
+    <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
+      <Card className="w-full max-w-md animate-fade-in">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">🌙 MoonLight</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-center text-muted-foreground">
+            欢迎来到 MoonLight
+          </p>
+          <Button
+            className="w-full"
+            onClick={() => (window.location.href = '/login')}
+          >
+            开始使用
+          </Button>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }
 
-export default App
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      logger.debug('Authenticated user accessed public route, redirecting to home', {
+        from: location.pathname,
+      });
+    }
+  }, [isAuthenticated, location.pathname]);
+
+  if (isAuthenticated && (location.pathname === '/' || location.pathname === '/login')) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function App() {
+  logger.debug('App component rendered');
+
+  return (
+    <div className="min-h-screen">
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <AuthGuard>
+              <LandingPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <AuthGuard>
+              <LoginPage />
+            </AuthGuard>
+          }
+        />
+
+        <Route element={<Layout />}>
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold">🚧 功能开发中</h2>
+                  <p className="text-muted-foreground mt-2">项目管理功能即将上线</p>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute>
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold">🚧 功能开发中</h2>
+                  <p className="text-muted-foreground mt-2">团队协作功能即将上线</p>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold">🚧 功能开发中</h2>
+                  <p className="text-muted-foreground mt-2">系统设置功能即将上线</p>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
+
+export default App;
