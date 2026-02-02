@@ -11,6 +11,8 @@ import { createLogger } from '@/utils/logger';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginPage } from '@/pages/Login';
+import { RegisterPage } from '@/pages/Register';
+import { ForgotPasswordPage } from '@/pages/ForgotPassword';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/Home';
@@ -52,7 +54,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, location.pathname]);
 
-  if (isAuthenticated && (location.pathname === '/' || location.pathname === '/login')) {
+  if (
+    isAuthenticated &&
+    ['/', '/login', '/register', '/forgot-password'].includes(location.pathname)
+  ) {
     return <Navigate to="/home" replace />;
   }
 
@@ -78,6 +83,22 @@ function App() {
           element={
             <AuthGuard>
               <LoginPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <AuthGuard>
+              <RegisterPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <AuthGuard>
+              <ForgotPasswordPage />
             </AuthGuard>
           }
         />

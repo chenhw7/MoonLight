@@ -48,6 +48,25 @@ export const authApi = {
     api.post<ApiResponse<AuthResponse>>('/auth/register', data),
 
   /**
+   * 发送重置密码验证码
+   */
+  sendResetCode: (email: string) =>
+    api.post<ApiResponse<void>>('/auth/send-code', {
+      email,
+      code_type: 'reset_password',
+    }),
+
+  /**
+   * 验证重置密码验证码
+   */
+  verifyResetCode: (email: string, code: string) =>
+    api.post<ApiResponse<VerifyCodeResponse>>('/auth/verify-code', {
+      email,
+      code,
+      code_type: 'reset_password',
+    }),
+
+  /**
    * 重置密码
    */
   resetPassword: (email: string, code: string, newPassword: string) =>

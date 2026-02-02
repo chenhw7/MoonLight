@@ -158,12 +158,12 @@ class AuthService:
         user = await self._get_user_by_email(login_data.email)
         if not user:
             logger.warning("User not found", email=login_data.email)
-            raise AuthenticationError("Invalid email or password")
+            raise AuthenticationError("Account does not exist")
 
         # 验证密码
         if not verify_password(login_data.password, user.password_hash):
             logger.warning("Invalid password", email=login_data.email)
-            raise AuthenticationError("Invalid email or password")
+            raise AuthenticationError("Password is incorrect")
 
         # 检查用户状态
         if not user.is_active:

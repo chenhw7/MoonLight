@@ -18,12 +18,14 @@ interface AuthState {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
+  rememberMe: boolean;
 
   // Actions
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<User>) => void;
   setAccessToken: (token: string) => void;
+  setRememberMe: (remember: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,16 +36,18 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       accessToken: null,
       refreshToken: null,
+      rememberMe: false,
 
       /**
        * 设置认证信息
        */
       setAuth: (user, accessToken, refreshToken) => {
-        logger.info('Auth set', { userId: user.id, email: user.email });
+        logger.info('Auth set', { userId: user.id, email: user.email, rememberMe: get().rememberMe });
 
-        // 保存到 localStorage
-        localStorage.setItem('access_token', accessToken);
-        localStorage.setItem('refresh_token', refreshToken);
+        // 根据 rememberMe 决定存储位置
+        const storage = get().rememberMe ? localStorage : sessionStorage;
+        storage.setItem('access_token', accessToken);
+        storage.setItem('refresh_token', refreshToken);
 
         set({
           user,
@@ -59,15 +63,18 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         logger.info('Auth cleared');
 
-        // 清除 localStorage
+        // 清除两种存储
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
 
         set({
           user: null,
           isAuthenticated: false,
           accessToken: null,
           refreshToken: null,
+          rememberMe: false,
         });
       },
 
@@ -91,11 +98,36 @@ export const useAuthStore = create<AuthState>()(
       setAccessToken: (token) => {
         logger.debug('Access token updated');
 
-        localStorage.setItem('access_token', token);
+        const storage = get().rememberMe ? localStorage : sessionStorage;
+        storage.setItem('access_token', token);
 
         set({
           accessToken: token,
         });
+      },
+
+      /**
+       * 设置记住我状态
+       */
+      setRememberMe: (remember) => {
+        logger.debug('Remember me set', { remember });
+
+        // 如果切换为记住我，将 token 从 sessionStorage 移到 localStorage
+        if (remember) {
+          const accessToken = sessionStorage.getItem('access_token');
+          const refreshToken = sessionStorage.getItem('refresh_token');
+
+          if (accessToken) {
+            localStorage.setItem('access_token', accessToken);
+            sessionStorage.removeItem('access_token');
+          }
+          if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+            sessionStorage.removeItem('refresh_token');
+          }
+        }
+
+        set({ rememberMe: remember });
       },
     }),
     {
@@ -103,6 +135,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        rememberMe: state.rememberMe,
         // token 不在这里持久化，由上面的方法手动管理
       }),
     }
