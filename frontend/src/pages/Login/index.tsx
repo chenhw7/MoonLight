@@ -34,11 +34,6 @@ export function LoginPage() {
             onNavigateToForgotPassword={handleNavigateToForgotPassword}
           />
         </div>
-
-        {/* 底部版权 */}
-        <div className="fixed bottom-4 left-0 right-0 text-center text-sm text-white/60">
-          <p>© 2026 MoonLight. All rights reserved.</p>
-        </div>
       </div>
     </div>
   );

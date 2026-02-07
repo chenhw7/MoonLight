@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Database
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/moonlight"
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:15432/moonlight"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

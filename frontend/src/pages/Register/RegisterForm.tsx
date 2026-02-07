@@ -41,13 +41,28 @@ export function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
     if (pwd.length < 8) {
       return { valid: false, message: '密码至少需要8位字符' };
     }
-    if (!/[a-zA-Z]/.test(pwd)) {
-      return { valid: false, message: '密码需要包含字母' };
+    if (!/[a-z]/.test(pwd)) {
+      return { valid: false, message: '密码需要包含小写字母' };
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return { valid: false, message: '密码需要包含大写字母' };
     }
     if (!/\d/.test(pwd)) {
       return { valid: false, message: '密码需要包含数字' };
     }
     return { valid: true, message: '' };
+  }, []);
+
+  const generateUsername = useCallback((email: string): string => {
+    const localPart = email.split('@')[0];
+    let username = localPart.replace(/[^a-zA-Z0-9_]/g, '');
+    if (!username || !/^[a-zA-Z]/.test(username)) {
+      username = 'user' + username;
+    }
+    if (username.length < 3) {
+      username = username.padEnd(3, '0');
+    }
+    return username.slice(0, 20);
   }, []);
 
   useEffect(() => {
@@ -111,7 +126,7 @@ export function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
         email,
         password,
         verification_code: fullCode,
-        username: email.split('@')[0],
+        username: generateUsername(email),
       }) as unknown as ApiResponse<AuthResponse>;
 
       const { user, accessToken, refreshToken } = response.data;
@@ -211,7 +226,7 @@ export function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        <p className="text-xs text-muted-foreground">密码需8位以上，包含字母和数字</p>
+        <p className="text-xs text-muted-foreground">密码需8位以上，包含大小写字母和数字</p>
       </div>
 
       <div className="space-y-2">
