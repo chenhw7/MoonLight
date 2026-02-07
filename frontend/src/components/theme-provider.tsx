@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
 
@@ -20,38 +20,55 @@ interface ThemeProviderProps {
   storageKey?: string;
 }
 
+/**
+ * 主题提供者组件 - 采用字节跳动 Arco Design 风格实现
+ * 使用 arco-theme 属性标记深色模式，追求即时响应无过渡
+ */
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'moonlight-theme',
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
+  const [theme, setThemeState] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  useEffect(() => {
+  const applyTheme = useCallback((newTheme: Theme) => {
     const root = window.document.documentElement;
+    const body = window.document.body;
 
-    root.classList.remove('light', 'dark');
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
+    if (newTheme === 'dark') {
+      body.setAttribute('arco-theme', 'dark');
+      root.classList.add('dark');
+    } else if (newTheme === 'light') {
+      body.removeAttribute('arco-theme');
+      root.classList.remove('dark');
+    } else {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
-
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
+      if (systemTheme === 'dark') {
+        body.setAttribute('arco-theme', 'dark');
+        root.classList.add('dark');
+      } else {
+        body.removeAttribute('arco-theme');
+        root.classList.remove('dark');
+      }
     }
-  }, [theme]);
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme, applyTheme]);
+
+  const setTheme = useCallback((newTheme: Theme) => {
+    localStorage.setItem(storageKey, newTheme);
+    setThemeState(newTheme);
+  }, [storageKey]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
-    },
+    setTheme,
   };
 
   return (

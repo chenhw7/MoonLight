@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 settings = get_settings()
 engine = create_async_engine(
     settings.database_url,
-    echo=settings.debug,
+    echo=False,  # 关闭 SQL 语句日志，避免干扰业务日志
     future=True,
 )
 

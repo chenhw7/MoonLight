@@ -10,6 +10,8 @@ import { createLogger } from '@/utils/logger';
 const logger = createLogger('API');
 
 // API 基础配置
+// 后端 API 路径结构: /api/v1/{resource}/{action}
+// 符合 RESTful API 版本化规范
 const apiConfig: AxiosRequestConfig = {
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
   timeout: 10000,

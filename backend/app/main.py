@@ -84,7 +84,7 @@ app.add_middleware(
 async def logging_middleware(request: Request, call_next):
     """请求日志中间件。
 
-    记录每个请求的详细信息，包括请求 ID、处理时间等。
+    记录每个请求的详细信息，包括请求 ID、处理时间、请求体和响应体等。
 
     Args:
         request: FastAPI 请求对象
@@ -105,24 +105,72 @@ async def logging_middleware(request: Request, call_next):
     # 创建请求日志记录器
     request_logger = get_request_logger(request_id, client_ip, method, path)
 
+    # 读取请求体
+    request_body = None
+    if method in ["POST", "PUT", "PATCH"]:
+        try:
+            body = await request.body()
+            if body:
+                try:
+                    request_body = body.decode("utf-8")
+                    # 限制日志长度，避免过大
+                    if len(request_body) > 1000:
+                        request_body = request_body[:1000] + "... [truncated]"
+                except UnicodeDecodeError:
+                    request_body = "[binary data]"
+            # 重新设置请求体，以便后续处理
+            async def receive():
+                return {"type": "http.request", "body": body}
+            request._receive = receive
+        except Exception as e:
+            request_logger.debug("Failed to read request body", error=str(e))
+
     # 记录请求开始
     start_time = time.time()
-    request_logger.info(
-        "Request started",
-        query=str(request.query_params),
-    )
+    log_data = {
+        "query": str(request.query_params),
+    }
+    if request_body:
+        log_data["body"] = request_body
+    request_logger.info("Request started", **log_data)
 
     # 处理请求
     try:
         response = await call_next(request)
         process_time = (time.time() - start_time) * 1000
 
+        # 读取响应体（仅开发环境）
+        response_body = None
+        if settings.is_development and response.status_code != 204:
+            try:
+                from starlette.responses import StreamingResponse
+                if not isinstance(response, StreamingResponse):
+                    response_body_chunks = []
+                    async for chunk in response.body_iterator:
+                        response_body_chunks.append(chunk)
+                    response_body = b"".join(response_body_chunks).decode("utf-8")
+                    # 限制日志长度
+                    if len(response_body) > 1000:
+                        response_body = response_body[:1000] + "... [truncated]"
+                    # 重建响应
+                    from starlette.responses import Response
+                    response = Response(
+                        content=b"".join(response_body_chunks),
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                        media_type=response.media_type,
+                    )
+            except Exception as e:
+                request_logger.debug("Failed to read response body", error=str(e))
+
         # 记录请求完成
-        request_logger.info(
-            "Request completed",
-            status_code=response.status_code,
-            latency_ms=round(process_time, 2),
-        )
+        log_data = {
+            "status_code": response.status_code,
+            "latency_ms": round(process_time, 2),
+        }
+        if response_body:
+            log_data["response_body"] = response_body
+        request_logger.info("Request completed", **log_data)
 
         # 添加请求 ID 到响应头
         response.headers["X-Request-ID"] = request_id

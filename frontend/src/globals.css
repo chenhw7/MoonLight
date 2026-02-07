@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * 主题变量定义 - 采用字节跳动 Arco Design 风格
+ * 使用 CSS 变量管理主题色，通过 arco-theme 属性切换
+ * 追求即时响应，不添加全局颜色过渡
+ */
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -29,6 +35,8 @@
     --radius: 0.75rem;
   }
 
+  /* Arco Design 风格深色模式 - 使用 arco-theme 属性 */
+  [arco-theme="dark"],
   .dark {
     --background: 222 47% 11%;
     --background-gradient-start: #1a1a2e;
