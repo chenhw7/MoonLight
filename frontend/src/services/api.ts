@@ -4,7 +4,7 @@
  * 配置 axios 实例，包含拦截器和错误处理
  */
 
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('API');
@@ -21,11 +21,11 @@ const apiConfig: AxiosRequestConfig = {
 };
 
 // 创建 axios 实例
-export const api = axios.create(apiConfig);
+const axiosInstance = axios.create(apiConfig);
 
 // 请求拦截器
-api.interceptors.request.use(
-  (config) => {
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
     logger.debug(`${config.method?.toUpperCase()} ${config.url}`, {
       params: config.params,
       data: config.data,
@@ -49,7 +49,7 @@ api.interceptors.request.use(
 );
 
 // 响应拦截器
-api.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     logger.debug(`Response ${response.status}`, {
       url: response.config.url,
@@ -91,6 +91,20 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// 包装 API 实例，提供正确的类型
+export const api = {
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    axiosInstance.get<T, T>(url, config),
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    axiosInstance.post<T, T>(url, data, config),
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    axiosInstance.put<T, T>(url, data, config),
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    axiosInstance.patch<T, T>(url, data, config),
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    axiosInstance.delete<T, T>(url, config),
+};
 
 /**
  * API 错误类

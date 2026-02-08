@@ -4,16 +4,16 @@
 """
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import Boolean, DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
 
 if TYPE_CHECKING:
-    pass
+    from app.models.resume import Resume
 
 
 class User(Base):
@@ -64,6 +64,9 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # 关系
+    resumes: Mapped[List["Resume"]] = relationship("Resume", back_populates="user")
 
     def __repr__(self) -> str:
         """返回用户对象的字符串表示。"""

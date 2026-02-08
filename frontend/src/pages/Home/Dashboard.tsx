@@ -6,6 +6,9 @@
  */
 
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface StatItem {
   title: string;
@@ -34,17 +37,25 @@ const ACTIVITIES_DATA: ActivityItem[] = [
 ];
 
 export function Dashboard() {
+  const navigate = useNavigate();
+
   // 使用 useMemo 确保数据稳定性
   const stats = useMemo(() => STATS_DATA, []);
   const activities = useMemo(() => ACTIVITIES_DATA, []);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">👋 欢迎回来！</h1>
-        <p className="text-muted-foreground mt-2">
-          这里是您的工作台，一切尽在掌握。
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">👋 欢迎回来！</h1>
+          <p className="text-muted-foreground mt-2">
+            这里是您的工作台，一切尽在掌握。
+          </p>
+        </div>
+        <Button onClick={() => navigate('/resume/create')}>
+          <Plus className="w-4 h-4 mr-2" />
+          创建简历
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -1,9 +1,11 @@
-"""Alembic 环境配置。
+"""Alembic environment configuration.
 
-配置数据库迁移环境，支持异步数据库操作。
+Configure database migration environment, supporting async database operations.
 """
 
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import pool
@@ -11,11 +13,26 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+
+# Add project root to Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from app.core.config import get_settings
 from app.core.database import Base
 
-# 导入所有模型以确保它们在 Base.metadata 中注册
+# Import all models to ensure they are registered in Base.metadata
 from app.models.user import User, VerificationCode  # noqa: F401
+from app.models.resume import (  # noqa: F401
+    Resume,
+    Education,
+    WorkExperience,
+    Project,
+    Skill,
+    Language,
+    Award,
+    Portfolio,
+    SocialLink,
+)
 
 # 获取配置
 settings = get_settings()

@@ -16,6 +16,7 @@ import { ForgotPasswordPage } from '@/pages/ForgotPassword';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/Home';
+import { ResumeCreate } from '@/pages/Resume';
 
 const logger = createLogger('App');
 
@@ -142,6 +143,14 @@ function App() {
                   <h2 className="text-2xl font-bold">🚧 功能开发中</h2>
                   <p className="text-muted-foreground mt-2">系统设置功能即将上线</p>
                 </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resume/create"
+            element={
+              <ProtectedRoute>
+                <ResumeCreate />
               </ProtectedRoute>
             }
           />

@@ -4,5 +4,28 @@
 """
 
 from app.models.user import User, VerificationCode
+from app.models.resume import (
+    Resume,
+    Education,
+    WorkExperience,
+    Project,
+    Skill,
+    Language,
+    Award,
+    Portfolio,
+    SocialLink,
+)
 
-__all__ = ["User", "VerificationCode"]
+__all__ = [
+    "User",
+    "VerificationCode",
+    "Resume",
+    "Education",
+    "WorkExperience",
+    "Project",
+    "Skill",
+    "Language",
+    "Award",
+    "Portfolio",
+    "SocialLink",
+]
