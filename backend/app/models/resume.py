@@ -28,13 +28,6 @@ class Resume(Base):
         phone: 手机号
         email: 邮箱
         current_city: 当前城市
-        target_cities: 期望城市
-        job_status: 求职状态
-        target_positions: 期望岗位
-        work_years: 工作年限
-        current_company: 当前公司
-        current_position: 当前职位
-        expected_salary: 期望薪资
         self_evaluation: 自我评价
     """
 
@@ -53,15 +46,6 @@ class Resume(Base):
     avatar: Mapped[Optional[str]] = mapped_column(Text)  # Base64 编码的头像图片
     avatar_ratio: Mapped[Optional[str]] = mapped_column(String(10), default="1.4")  # 头像比例: '1.4' 或 '1'
     current_city: Mapped[Optional[str]] = mapped_column(String(50))
-    target_cities: Mapped[Optional[str]] = mapped_column(String(200))
-    job_status: Mapped[Optional[str]] = mapped_column(String(20))
-    target_positions: Mapped[Optional[str]] = mapped_column(String(200))
-
-    # 社招特有字段
-    work_years: Mapped[Optional[int]] = mapped_column(Integer)
-    current_company: Mapped[Optional[str]] = mapped_column(String(100))
-    current_position: Mapped[Optional[str]] = mapped_column(String(100))
-    expected_salary: Mapped[Optional[str]] = mapped_column(String(50))
 
     # 自我评价
     self_evaluation: Mapped[Optional[str]] = mapped_column(Text)

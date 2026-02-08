@@ -284,13 +284,6 @@ class ResumeBase(BaseModel):
     avatar: Optional[str] = None  # Base64 编码的头像
     avatar_ratio: Optional[str] = Field(default="1.4", pattern=r"^(1\.4|1)$")  # 头像比例: '1.4' 或 '1'
     current_city: Optional[str] = Field(None, max_length=50)
-    target_cities: Optional[str] = Field(None, max_length=200)
-    job_status: Optional[str] = Field(None, pattern=r"^(employed|unemployed|student)$")
-    target_positions: Optional[str] = Field(None, max_length=200)
-    work_years: Optional[int] = Field(None, ge=0, le=50)
-    current_company: Optional[str] = Field(None, max_length=100)
-    current_position: Optional[str] = Field(None, max_length=100)
-    expected_salary: Optional[str] = Field(None, max_length=50)
     self_evaluation: Optional[str] = None
 
     @field_validator("phone")

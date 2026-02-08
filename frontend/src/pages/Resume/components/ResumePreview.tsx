@@ -10,7 +10,6 @@ import { X, ZoomIn, ZoomOut, Download } from 'lucide-react';
 import type { ResumeFormData } from '@/types/resume';
 import {
   EDUCATION_LEVELS,
-  JOB_STATUS_OPTIONS,
   PROFICIENCY_LEVELS,
   LANGUAGE_OPTIONS,
   LANGUAGE_PROFICIENCY_OPTIONS,
@@ -53,13 +52,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
    */
   const getEducationLabel = (value: string) => {
     return EDUCATION_LEVELS.find((item) => item.value === value)?.label || value;
-  };
-
-  /**
-   * 获取求职状态标签
-   */
-  const getJobStatusLabel = (value: string) => {
-    return JOB_STATUS_OPTIONS.find((item) => item.value === value)?.label || value;
   };
 
   /**
@@ -144,7 +136,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
           <ResumeTemplate
             data={data}
             getEducationLabel={getEducationLabel}
-            getJobStatusLabel={getJobStatusLabel}
             getProficiencyLabel={getProficiencyLabel}
             getLanguageLabel={getLanguageLabel}
             getLanguageProficiencyLabel={getLanguageProficiencyLabel}
@@ -163,7 +154,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
 interface ResumeTemplateProps {
   data: ResumeFormData;
   getEducationLabel: (value: string) => string;
-  getJobStatusLabel: (_value: string) => string;
   getProficiencyLabel: (value: string) => string;
   getLanguageLabel: (value: string) => string;
   getLanguageProficiencyLabel: (value: string) => string;
@@ -174,8 +164,6 @@ interface ResumeTemplateProps {
 const ResumeTemplate: React.FC<ResumeTemplateProps> = ({
   data,
   getEducationLabel,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getJobStatusLabel: _getJobStatusLabel,
   getProficiencyLabel,
   getLanguageLabel,
   getLanguageProficiencyLabel,
@@ -194,26 +182,7 @@ const ResumeTemplate: React.FC<ResumeTemplateProps> = ({
               {data.email && <span>{data.email}</span>}
               {data.location && <span>{data.location}</span>}
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-gray-700">
-              {data.target_positions.length > 0 && (
-                <span>
-                  <strong>期望岗位：</strong>
-                  {data.target_positions.join('、')}
-                </span>
-              )}
-              {data.target_cities.length > 0 && (
-                <span>
-                  <strong>期望城市：</strong>
-                  {data.target_cities.join('、')}
-                </span>
-              )}
-              {data.years_of_experience !== undefined && (
-                <span>
-                  <strong>工作年限：</strong>
-                  {data.years_of_experience}年
-                </span>
-              )}
-            </div>
+
           </div>
 
           {/* 头像显示 - 根据比例显示不同尺寸 */}

@@ -149,13 +149,6 @@ class ResumeService:
             phone=data.phone,
             email=data.email,
             current_city=data.current_city,
-            target_cities=data.target_cities,
-            job_status=data.job_status,
-            target_positions=data.target_positions,
-            work_years=data.work_years,
-            current_company=data.current_company,
-            current_position=data.current_position,
-            expected_salary=data.expected_salary,
             self_evaluation=data.self_evaluation,
         )
 
@@ -225,13 +218,6 @@ class ResumeService:
             phone=original.phone,
             email=original.email,
             current_city=original.current_city,
-            target_cities=original.target_cities,
-            job_status=original.job_status,
-            target_positions=original.target_positions,
-            work_years=original.work_years,
-            current_company=original.current_company,
-            current_position=original.current_position,
-            expected_salary=original.expected_salary,
             self_evaluation=original.self_evaluation,
         )
         self.db.add(new_resume)

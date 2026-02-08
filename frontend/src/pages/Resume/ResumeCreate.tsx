@@ -135,7 +135,7 @@ const TabContent: React.FC = () => {
   const renderContent = () => {
     switch (currentTab) {
       case 'basic':
-        return <BasicInfoForm resumeMode={resumeMode} />;
+        return <BasicInfoForm />;
       case 'education':
         return <EducationForm resumeMode={resumeMode} />;
       case 'work':

@@ -125,13 +125,6 @@ export interface ResumeBase {
   avatar?: string;  // Base64 编码的头像
   avatar_ratio?: AvatarRatio;  // 头像比例：'1.4' 为证件照(1:1.4)，'1' 为正方形(1:1)
   location: string;
-  target_cities: string[];
-  job_status: JobStatus;
-  target_positions: string[];
-  years_of_experience?: number;
-  current_company?: string;
-  current_position?: string;
-  expected_salary?: string;
   self_evaluation?: string;
   is_default?: boolean;
 }
@@ -275,13 +268,6 @@ export const resumeBaseSchema = z.object({
   email: z.string().email('请输入正确的邮箱'),
   avatar: z.string().optional(),  // 头像为可选
   location: z.string().min(1, '请选择当前居住地').max(100, '地址过长'),
-  target_cities: z.array(z.string()).min(1, '请至少选择一个期望城市'),
-  job_status: z.enum(['active', 'passive', 'inactive', 'unknown']),
-  target_positions: z.array(z.string()).min(1, '请至少选择一个期望岗位'),
-  years_of_experience: z.number().min(0).max(50).optional(),
-  current_company: z.string().max(100, '公司名称过长').optional(),
-  current_position: z.string().max(100, '职位名称过长').optional(),
-  expected_salary: z.string().max(50, '薪资范围过长').optional(),
   self_evaluation: z.string().max(1000, '自我评价过长').optional(),
 });
 
@@ -403,9 +389,6 @@ export const DEFAULT_RESUME_DATA: ResumeFormData = {
   avatar: '',
   avatar_ratio: '1.4',
   location: '',
-  target_cities: [],
-  job_status: 'active',
-  target_positions: [],
   educations: [],
   work_experiences: [],
   projects: [],
