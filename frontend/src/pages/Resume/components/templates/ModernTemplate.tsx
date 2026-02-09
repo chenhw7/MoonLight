@@ -146,6 +146,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           fontSize: '13px',
           color: '#000000',
           marginTop: '4px',
+          wordWrap: 'break-word',
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
         }}
       >
         {contacts.join(' | ')}
@@ -162,6 +165,8 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         fontFamily,
         fontWeight: 570,
         letterSpacing: '0.5px',
+        maxWidth: '100%',
+        overflow: 'hidden',
       }}
     >
       {/* 头部信息 - 左右布局 */}
@@ -173,6 +178,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           marginBottom: '16px',
           paddingBottom: '12px',
           borderBottom: `1px solid ${themeColor}`,
+          pageBreakInside: 'avoid', // 避免页面在头部中间断开
         }}
       >
         {/* 左侧：姓名和联系信息 */}
@@ -210,10 +216,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 教育经历 */}
       {data.educations.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle('教育经历')}
           {data.educations.map((edu, index) => (
-            <div key={index} style={{ marginBottom: '8px' }}>
+            <div key={index} style={{ marginBottom: '8px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
               <div
                 style={{
                   display: 'flex',
@@ -245,10 +251,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 工作/实习经历 */}
       {data.work_experiences.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle(data.resume_type === 'campus' ? '实习经历' : '工作经历')}
           {data.work_experiences.map((work, index) => (
-            <div key={index} style={{ marginBottom: '10px' }}>
+            <div key={index} style={{ marginBottom: '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
               {/* 第一行：公司 · 职位 · 部门 | 时间 | 地点 */}
               <div
                 style={{
@@ -257,6 +263,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '4px',
+                  width: '100%',
                 }}
               >
                 <div style={{ fontSize: '13px', color: '#000000', fontWeight: 600 }}>
@@ -277,6 +284,12 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   color: '#000000',
                   lineHeight: '1.7',
                   fontSize: '13px',
+                  wordWrap: 'break-word',
+                  wordBreak: 'break-all',
+                  overflowWrap: 'anywhere',
+                  width: '100%',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
                 }}
               >
                 {work.description}
@@ -288,10 +301,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 项目经历 */}
       {data.projects.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle('项目经历')}
           {data.projects.map((project, index) => (
-            <div key={index} style={{ marginBottom: '10px' }}>
+            <div key={index} style={{ marginBottom: '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
               {/* 第一行：项目名 · 角色 | 时间 */}
               <div
                 style={{
@@ -300,6 +313,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '4px',
+                  width: '100%',
                 }}
               >
                 <div style={{ fontSize: '13px', color: '#000000', fontWeight: 600 }}>
@@ -314,7 +328,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               </div>
               {/* 项目链接 */}
               {project.link && (
-                <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px' }}>
+                <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', wordWrap: 'break-word', wordBreak: 'break-all' }}>
                   {project.link}
                 </div>
               )}
@@ -326,6 +340,12 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   color: '#000000',
                   lineHeight: '1.7',
                   fontSize: '13px',
+                  wordWrap: 'break-word',
+                  wordBreak: 'break-all',
+                  overflowWrap: 'anywhere',
+                  width: '100%',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
                 }}
               >
                 {project.description}
@@ -337,7 +357,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 技能特长 */}
       {data.skills.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
           {renderSectionTitle('技能特长')}
           <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
             {data.skills.map((skill, index) => (
@@ -353,7 +373,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 语言能力 */}
       {data.languages.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
           {renderSectionTitle('语言能力')}
           <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
             {data.languages.map((lang, index) => (
@@ -369,7 +389,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 获奖经历 */}
       {data.awards.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
           {renderSectionTitle('获奖经历')}
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.awards.map((award, index) => (
@@ -388,11 +408,11 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 作品展示 */}
       {data.portfolios.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
           {renderSectionTitle('作品展示')}
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.portfolios.map((portfolio, index) => (
-              <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6' }}>
+              <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6', wordWrap: 'break-word', wordBreak: 'break-all' }}>
                 {portfolio.name}
                 {portfolio.link && (
                   <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
@@ -407,9 +427,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 社交账号 */}
       {data.social_links.length > 0 && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
           {renderSectionTitle('社交账号')}
-          <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
+          <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8', wordWrap: 'break-word', wordBreak: 'break-all' }}>
             {data.social_links.map((link, index) => (
               <span key={index}>
                 <strong style={{ color: '#000000' }}>{getSocialPlatformLabel(link.platform)}</strong>
@@ -423,7 +443,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
       {/* 个人总结 */}
       {data.self_evaluation && (
-        <section style={{ marginBottom: '14px' }}>
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle('个人总结')}
           <p
             style={{
@@ -432,6 +452,12 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               color: '#000000',
               lineHeight: '1.7',
               fontSize: '13px',
+              wordWrap: 'break-word',
+              wordBreak: 'break-all',
+              overflowWrap: 'anywhere',
+              width: '100%',
+              maxWidth: '100%',
+              overflow: 'hidden',
             }}
           >
             {data.self_evaluation}

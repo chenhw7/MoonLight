@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { X, ZoomIn, ZoomOut, Download } from 'lucide-react';
 import type { ResumeFormData } from '@/types/resume';
@@ -16,6 +17,9 @@ import {
   SOCIAL_PLATFORM_OPTIONS,
 } from '@/types/resume';
 import ModernTemplate from './templates/ModernTemplate';
+import SmartPagination from './SmartPagination';
+import { exportToPrintablePDF } from '@/utils/pdf';
+import '../resume-print.css';
 
 interface ResumePreviewProps {
   data: ResumeFormData;
@@ -31,6 +35,7 @@ interface ResumePreviewProps {
  */
 const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
   const [scale, setScale] = React.useState(1);
+  const [isExporting, setIsExporting] = React.useState(false);
   const previewRef = React.useRef<HTMLDivElement>(null);
 
   /**
@@ -48,7 +53,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
    * 导出 PDF
    */
   const handleExportPDF = async () => {
-    alert('PDF 导出功能开发中...');
+    setIsExporting(true);
+
+    try {
+      await exportToPrintablePDF(`${data.name || '简历'}_简历`);
+    } catch (error) {
+      console.error('PDF 导出失败:', error);
+      alert('PDF 导出失败，请重试');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   /**
@@ -119,11 +133,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
   };
 
   /**
-   * 渲染模板
-   *
-   * @returns 模板组件
+   * 渲染模板（memoize 以避免 SmartPagination 不必要的重新测量）
    */
-  const renderTemplate = () => {
+  const renderedTemplate = React.useMemo(() => {
     const templateProps = {
       data,
       getEducationLabel,
@@ -135,29 +147,32 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
     };
 
     return <ModernTemplate {...templateProps} />;
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
+  // 使用 createPortal 将预览渲染到 body 下，脱离 #root
+  // 这样打印时隐藏 #root 不会影响预览内容
+  return createPortal(
+    <div id="resume-preview-container" className="fixed inset-0 z-[9999] flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }}>
       {/* 顶部工具栏 */}
-      <div className="bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+      <div id="resume-toolbar" className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between" style={{ flexShrink: 0 }}>
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-foreground">简历预览</h2>
+          <h2 className="text-lg font-semibold text-gray-900">简历预览</h2>
         </div>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleZoomOut}>
             <ZoomOut className="w-4 h-4" />
           </Button>
-          <span className="text-sm text-muted-foreground w-16 text-center">
+          <span className="text-sm text-gray-500 w-16 text-center">
             {Math.round(scale * 100)}%
           </span>
           <Button variant="outline" size="sm" onClick={handleZoomIn}>
             <ZoomIn className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportPDF}>
+          <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExporting}>
             <Download className="w-4 h-4 mr-1" />
-            导出PDF
+            {isExporting ? '导出中...' : '导出PDF'}
           </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -165,22 +180,27 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
         </div>
       </div>
 
-      {/* 预览内容 - 强制白底黑字，不受深色模式影响 */}
-      <div className="flex-1 overflow-auto p-8 flex justify-center bg-gray-100 dark:bg-gray-900">
+      {/* 预览内容区 */}
+      <div id="resume-preview-content" className="flex-1 overflow-auto" style={{ padding: '32px', background: '#f3f4f6' }}>
         <div
           ref={previewRef}
-          className="bg-white text-gray-900 shadow-lg origin-top transition-transform"
           style={{
-            width: '210mm',
-            minHeight: '297mm',
-            padding: '18mm',
             transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '24px',
           }}
         >
-          {renderTemplate()}
+          {/* 智能分页：自动测量并将内容分配到多个 A4 页面 */}
+          <SmartPagination>
+            {renderedTemplate}
+          </SmartPagination>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

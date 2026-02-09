@@ -11,7 +11,8 @@ alembic==1.12.1
 redis==5.0.1
 
 # Security
-passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+passlib==1.7.4
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 
@@ -22,6 +23,9 @@ email-validator==2.1.0.post1
 
 # Email
 aiosmtplib==2.0.1
+
+# Image Processing
+pillow==10.1.0
 
 # Logging
 structlog==23.2.0

@@ -1,0 +1,118 @@
+/**
+ * 简历打印和PDF导出样式
+ *
+ * 预览组件通过 React Portal 渲染在 body 下（与 #root 同级），
+ * SmartPagination 将内容分配到多个 PageContainer（.page-container），
+ * 打印时只需隐藏 #root 并重置容器样式即可。
+ */
+
+@media print {
+  /* ===== A4 页面设置 ===== */
+  @page {
+    size: A4 portrait;
+    margin: 0; /* 边距由 .page-container 的 padding 控制 */
+  }
+
+  html,
+  body {
+    width: 210mm;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  /* ===== 核心：隐藏应用主体 ===== */
+  body.printing-resume #root {
+    display: none !important;
+  }
+
+  /* ===== 重置 Portal 容器层级 ===== */
+  body.printing-resume #resume-preview-container {
+    position: static !important;
+    display: block !important;
+    background: none !important;
+    inset: auto !important;
+    z-index: auto !important;
+  }
+
+  /* 隐藏工具栏 */
+  body.printing-resume #resume-toolbar {
+    display: none !important;
+  }
+
+  /* 重置滚动区域 */
+  body.printing-resume #resume-preview-content {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: white !important;
+    flex: none !important;
+  }
+
+  /* 移除缩放变换 */
+  body.printing-resume #resume-preview-content > div {
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+  }
+
+  /* ===== 隐藏 SmartPagination 的测量容器 ===== */
+  body.printing-resume div[aria-hidden='true'] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* ===== PageContainer 打印样式 ===== */
+  body.printing-resume .page-container {
+    display: block !important;
+    position: relative !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 0 !important;
+    box-shadow: none !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    padding: 18mm !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    overflow: hidden !important;
+  }
+
+  /* 最后一页不强制分页 */
+  body.printing-resume .page-container:last-of-type {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* page-container 内部包裹器 */
+  body.printing-resume .page-container > div {
+    width: 100% !important;
+    height: auto !important;
+    position: static !important;
+  }
+
+  /* ===== 颜色精确打印 ===== */
+  body.printing-resume * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ===== 屏幕预览辅助样式 ===== */
+@media screen {
+  .page-container {
+    position: relative;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .page-container * {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}

@@ -55,11 +55,13 @@ async def send_verification_email(to_email: str, code: str, code_type: str) -> b
         msg.attach(MIMEText(content, "html", "utf-8"))
 
         # 发送邮件
+        # 注意：QQ邮箱465端口使用SSL，需要start_tls=False
         await aiosmtplib.send(
             msg,
             hostname=settings.email_smtp_host,
             port=settings.email_smtp_port,
-            use_tls=True,
+            start_tls=False,  # 465端口使用SSL不需要STARTTLS
+            use_tls=True,     # 使用SSL/TLS加密连接
             username=settings.email_username,
             password=settings.email_password,
         )

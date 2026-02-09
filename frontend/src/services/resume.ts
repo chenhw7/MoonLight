@@ -6,6 +6,7 @@
 
 import axios from 'axios';
 import { createLogger } from '@/utils/logger';
+import { debugToken, isTokenExpired } from '@/utils/token';
 import type {
   Resume,
   ResumeBase,
@@ -39,9 +40,28 @@ const resumeApi = axios.create({
 resumeApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (!token) {
+      logger.error('No access token found');
+      console.error('❌ 未找到 access_token，请先登录');
+      window.location.href = '/login';
+      return Promise.reject(new Error('未登录'));
     }
+
+    // 检查 token 是否过期
+    if (isTokenExpired(token)) {
+      logger.error('Access token expired');
+      console.error('❌ Token 已过期，请重新登录');
+      debugToken();
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      window.location.href = '/login';
+      return Promise.reject(new Error('Token 已过期'));
+    }
+
+    config.headers.Authorization = `Bearer ${token}`;
+    logger.debug(`Request: ${config.method?.toUpperCase()} ${config.url}`, {
+      hasToken: !!token,
+    });
     return config;
   },
   (error) => Promise.reject(error)
@@ -49,8 +69,25 @@ resumeApi.interceptors.request.use(
 
 // 响应拦截器
 resumeApi.interceptors.response.use(
-  (response) => response.data,
-  (error) => Promise.reject(error)
+  (response) => {
+    // 如果返回的是 { code: 200, message: 'success', data: {...} } 格式，提取 data
+    if (response.data && response.data.data !== undefined) {
+      return response.data.data;
+    }
+    return response.data;
+  },
+  (error) => {
+    // 处理 403 错误
+    if (error.response?.status === 403) {
+      console.error('403 Forbidden - 权限不足或 token 无效');
+      // 清除过期的 token
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      // 跳转到登录页
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
 );
 
 // ============================================================================

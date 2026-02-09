@@ -15,7 +15,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 # 密码哈希上下文
-def _truncate_password(password: str) -> str:
+def _truncate_password(password: str) -> bytes:
     """截断密码到 72 字节以内（bcrypt 限制）。
     
     bcrypt 算法只使用前 72 字节，超过部分会被忽略。
@@ -25,13 +25,14 @@ def _truncate_password(password: str) -> str:
         password: 原始密码
         
     Returns:
-        str: 截断后的密码（最多 72 字节）
+        bytes: 截断后的密码字节（最多 72 字节）
     """
     # bcrypt 使用 UTF-8 编码，限制 72 字节
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
-        return password_bytes[:72].decode('utf-8', errors='ignore')
-    return password
+        # 直接返回截断的字节，让 bcrypt 处理
+        return password_bytes[:72]
+    return password_bytes
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -58,8 +59,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         True
     """
     # 截断密码以符合 bcrypt 限制
-    truncated_password = _truncate_password(plain_password)
-    return pwd_context.verify(truncated_password, hashed_password)
+    truncated_password_bytes = _truncate_password(plain_password)
+    return pwd_context.verify(truncated_password_bytes, hashed_password)
 
 
 def hash_password(password: str) -> str:
@@ -79,8 +80,8 @@ def hash_password(password: str) -> str:
         '$2b$12$...'
     """
     # 截断密码以符合 bcrypt 限制
-    truncated_password = _truncate_password(password)
-    return pwd_context.hash(truncated_password)
+    truncated_password_bytes = _truncate_password(password)
+    return pwd_context.hash(truncated_password_bytes)
 
 
 def create_access_token(
