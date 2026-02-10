@@ -1,50 +1,50 @@
 # FastAPI
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
+fastapi==0.124.4
+uvicorn[standard]==0.38.0
 
 # Database
-sqlalchemy[asyncio]==2.0.23
-asyncpg==0.29.0
-alembic==1.12.1
+sqlalchemy[asyncio]==2.0.38
+asyncpg==0.30.0
+alembic==1.14.0
 
 # Cache
-redis==5.0.1
+redis==7.1.0
 
 # Security
 bcrypt==4.1.2
-passlib==1.7.4
+passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
-python-multipart==0.0.6
+python-multipart==0.0.21
 
 # Validation & Serialization
-pydantic==2.5.2
-pydantic-settings==2.1.0
-email-validator==2.1.0.post1
+pydantic==2.12.5
+pydantic-settings==2.10.1
+email-validator==2.3.0
 
 # Email
-aiosmtplib==2.0.1
+aiosmtplib==3.0.2
 
 # Image Processing
-pillow==10.1.0
+pillow==11.3.0
 
 # Logging
-structlog==23.2.0
+structlog==24.4.0
 
 # Environment
-python-dotenv==1.0.0
+python-dotenv==1.1.1
 
 # Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-httpx==0.25.2
+pytest==9.0.2
+pytest-asyncio==0.24.0
+httpx==0.28.1
 
 # Development
-black==23.11.0
-isort==5.12.0
-mypy==1.7.1
-flake8==6.1.0
+black==24.10.0
+isort==5.13.2
+mypy==1.13.0
+flake8==7.1.1
 
 # Type stubs
-sqlalchemy2-stubs==0.0.2a36
-types-python-jose==3.3.4.8
-types-passlib==1.7.7.13
+sqlalchemy2-stubs==0.0.2a38
+types-python-jose==3.3.4.20240106
+types-passlib==1.7.7.20240819

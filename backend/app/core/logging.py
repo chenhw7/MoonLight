@@ -21,6 +21,8 @@ def configure_logging() -> None:
     - 开发环境：控制台输出，人类可读格式
     - 生产环境：JSON 格式，便于日志收集系统处理
 
+    注意：使用 force=True 确保覆盖 uvicorn 预先配置的日志处理器。
+
     Example:
         >>> configure_logging()
         >>> logger = get_logger(__name__)
@@ -28,12 +30,24 @@ def configure_logging() -> None:
     """
     settings = get_settings()
 
-    # 配置标准库 logging
+    log_level = logging.DEBUG if settings.debug else logging.INFO
+
+    # 使用 force=True 确保覆盖 uvicorn 预先配置的 root logger handlers
+    # 否则 logging.basicConfig 在 root logger 已有 handler 时不生效
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=logging.DEBUG if settings.debug else logging.INFO,
+        level=log_level,
+        force=True,
     )
+
+    # 同时设置关键 logger 的级别，确保所有模块日志都能输出
+    for logger_name in ["app", "uvicorn", "uvicorn.access", "uvicorn.error", "sqlalchemy.engine"]:
+        logging.getLogger(logger_name).setLevel(log_level)
+
+    # 降低 sqlalchemy engine 的日志级别（避免过于冗长），仅在 debug 模式下输出 SQL
+    if not settings.debug:
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     # 配置 structlog
     shared_processors: list[Any] = [

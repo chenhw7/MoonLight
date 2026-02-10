@@ -191,7 +191,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               margin: '0 0 6px 0',
             }}
           >
-            {data.name || '姓名'}
+            {data.full_name || '姓名'}
           </h1>
           {renderContactInfo()}
         </div>
@@ -317,7 +317,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 }}
               >
                 <div style={{ fontSize: '13px', color: '#000000', fontWeight: 600 }}>
-                  {project.name}
+                  {project.project_name}
                   <span style={{ fontWeight: 'normal', color: '#000000' }}>
                     {' '}· {project.role}
                   </span>
@@ -327,9 +327,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 </span>
               </div>
               {/* 项目链接 */}
-              {project.link && (
+              {project.project_link && (
                 <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', wordWrap: 'break-word', wordBreak: 'break-all' }}>
-                  {project.link}
+                  {project.project_link}
                 </div>
               )}
               {/* 描述 */}
@@ -362,7 +362,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
             {data.skills.map((skill, index) => (
               <span key={index}>
-                <strong style={{ color: '#000000' }}>{skill.name}</strong>
+                <strong style={{ color: '#000000' }}>{skill.skill_name}</strong>
                 <span style={{ color: '#000000' }}>（{getProficiencyLabel(skill.proficiency)}）</span>
                 {index < data.skills.length - 1 && <span style={{ margin: '0 8px', color: '#999999' }}>·</span>}
               </span>
@@ -394,10 +394,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.awards.map((award, index) => (
               <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6' }}>
-                {award.name}
-                {award.date && (
+                {award.award_name}
+                {award.award_date && (
                   <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                    （{formatChineseDate(award.date)}）
+                    ({formatChineseDate(award.award_date)})
                   </span>
                 )}
               </li>
@@ -413,10 +413,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.portfolios.map((portfolio, index) => (
               <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6', wordWrap: 'break-word', wordBreak: 'break-all' }}>
-                {portfolio.name}
-                {portfolio.link && (
+                {portfolio.work_name}
+                {portfolio.work_link && (
                   <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                    {portfolio.link}
+                    {portfolio.work_link}
                   </span>
                 )}
               </li>

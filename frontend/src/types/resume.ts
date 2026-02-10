@@ -64,11 +64,11 @@ export interface WorkExperience {
 /** 项目经历 */
 export interface Project {
   id?: number;
-  name: string;
+  project_name: string;
   role: string;
   start_date: string;
   end_date?: string | null;
-  link?: string;
+  project_link?: string;
   description: string;
   is_current?: boolean;
 }
@@ -76,7 +76,7 @@ export interface Project {
 /** 技能 */
 export interface Skill {
   id?: number;
-  name: string;
+  skill_name: string;
   proficiency: ProficiencyLevel;
 }
 
@@ -90,17 +90,17 @@ export interface Language {
 /** 获奖经历 */
 export interface Award {
   id?: number;
-  name: string;
-  date?: string;
+  award_name: string;
+  award_date?: string;
   description?: string;
 }
 
 /** 作品 */
 export interface Portfolio {
   id?: number;
-  name: string;
-  link?: string;
-  attachment?: string;
+  work_name: string;
+  work_link?: string;
+  attachment_url?: string;
   description?: string;
 }
 
@@ -119,12 +119,12 @@ export interface ResumeBase {
   id?: number;
   title: string;
   resume_type: ResumeType;
-  name: string;
+  full_name: string;
   phone: string;
   email: string;
   avatar?: string;  // Base64 编码的头像
   avatar_ratio?: AvatarRatio;  // 头像比例：'1.4' 为证件照(1:1.4)，'1' 为正方形(1:1)
-  location: string;
+  current_city?: string;
   self_evaluation?: string;
   is_default?: boolean;
 }
@@ -212,11 +212,11 @@ export const workExperienceSchema = z.object({
 /** 项目经历验证 Schema */
 export const projectSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, '请输入项目名称').max(100, '项目名称过长'),
+  project_name: z.string().min(1, '请输入项目名称').max(100, '项目名称过长'),
   role: z.string().min(1, '请输入项目角色').max(100, '角色名称过长'),
   start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
-  link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
+  project_link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
   description: z.string().min(20, '项目描述至少20字').max(2000, '项目描述过长'),
   is_current: z.boolean().optional(),
 });
@@ -224,7 +224,7 @@ export const projectSchema = z.object({
 /** 技能验证 Schema */
 export const skillSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, '请输入技能名称').max(50, '技能名称过长'),
+  skill_name: z.string().min(1, '请输入技能名称').max(50, '技能名称过长'),
   proficiency: z.enum(['expert', 'proficient', 'competent', 'beginner']),
 });
 
@@ -238,17 +238,17 @@ export const languageSchema = z.object({
 /** 获奖经历验证 Schema */
 export const awardSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, '请输入获奖名称').max(100, '获奖名称过长'),
-  date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
+  award_name: z.string().min(1, '请输入获奖名称').max(100, '获奖名称过长'),
+  award_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
   description: z.string().max(500, '描述过长').optional(),
 });
 
 /** 作品验证 Schema */
 export const portfolioSchema = z.object({
   id: z.number().optional(),
-  name: z.string().min(1, '请输入作品名称').max(100, '作品名称过长'),
-  link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
-  attachment: z.string().max(500, '附件路径过长').optional(),
+  work_name: z.string().min(1, '请输入作品名称').max(100, '作品名称过长'),
+  work_link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
+  attachment_url: z.string().max(500, '附件路径过长').optional(),
   description: z.string().max(1000, '描述过长').optional(),
 });
 
@@ -263,11 +263,12 @@ export const socialLinkSchema = z.object({
 export const resumeBaseSchema = z.object({
   title: z.string().min(1, '请输入简历标题').max(100, '标题过长'),
   resume_type: z.enum(['campus', 'social']),
-  name: z.string().min(2, '姓名至少2个字').max(20, '姓名过长'),
+  full_name: z.string().min(2, '姓名至少2个字').max(20, '姓名过长'),
   phone: z.string().regex(/^1[3-9]\d{9}$/, '请输入正确的手机号'),
   email: z.string().email('请输入正确的邮箱'),
   avatar: z.string().optional(),  // 头像为可选
-  location: z.string().min(1, '请选择当前居住地').max(100, '地址过长'),
+  avatar_ratio: z.enum(['1.4', '1']).optional(),  // 头像比例
+  current_city: z.string().min(1, '请选择当前居住地').max(100, '地址过长').optional(),
   self_evaluation: z.string().max(1000, '自我评价过长').optional(),
 });
 
@@ -383,12 +384,13 @@ export const TABS_CONFIG: { value: TabType; label: string; icon: string }[] = [
 export const DEFAULT_RESUME_DATA: ResumeFormData = {
   title: '',
   resume_type: 'campus',
-  name: '',
+  full_name: '',
   phone: '',
   email: '',
   avatar: '',
   avatar_ratio: '1.4',
-  location: '',
+  current_city: '',
+  self_evaluation: '',
   educations: [],
   work_experiences: [],
   projects: [],

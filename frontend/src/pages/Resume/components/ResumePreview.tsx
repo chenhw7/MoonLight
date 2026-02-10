@@ -56,7 +56,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
     setIsExporting(true);
 
     try {
-      await exportToPrintablePDF(`${data.name || '简历'}_简历`);
+      await exportToPrintablePDF(`${data.full_name || '简历'}_简历`);
     } catch (error) {
       console.error('PDF 导出失败:', error);
       alert('PDF 导出失败，请重试');

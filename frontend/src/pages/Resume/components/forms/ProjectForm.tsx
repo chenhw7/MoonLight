@@ -25,7 +25,7 @@ const ProjectForm: React.FC = () => {
    */
   const handleAddProject = () => {
     const newProject: Project = {
-      name: '',
+      project_name: '',
       role: '',
       start_date: '',
       end_date: null,
@@ -55,9 +55,9 @@ const ProjectForm: React.FC = () => {
           <Label>项目名称</Label>
           <Input
             placeholder="请输入项目名称"
-            value={project.name}
+            value={project.project_name}
             onChange={(e) =>
-              handleUpdateProject(index, { name: e.target.value })
+              handleUpdateProject(index, { project_name: e.target.value })
             }
           />
         </div>
@@ -79,9 +79,9 @@ const ProjectForm: React.FC = () => {
           <Label>项目链接（可选）</Label>
           <Input
             placeholder="GitHub、演示地址等"
-            value={project.link || ''}
+            value={project.project_link || ''}
             onChange={(e) =>
-              handleUpdateProject(index, { link: e.target.value })
+              handleUpdateProject(index, { project_link: e.target.value })
             }
           />
         </div>
@@ -168,7 +168,7 @@ const ProjectForm: React.FC = () => {
             renderItem={renderProjectItem}
             getItemId={(_, index) => `project-${index}`}
             getItemTitle={(item, index) =>
-              item.name || `项目经历 ${index + 1}`
+              item.project_name || `项目经历 ${index + 1}`
             }
             addButtonText="+ 添加项目经历"
             emptyText="暂无项目经历，点击添加"

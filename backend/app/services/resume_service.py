@@ -4,6 +4,7 @@
 """
 
 from typing import List, Optional
+from datetime import date
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,11 +133,11 @@ class ResumeService:
         return resume
 
     async def create_resume(self, user_id: int, data: ResumeCreate) -> Resume:
-        """创建简历。
+        """创建简历（支持同时创建子项）。
 
         Args:
             user_id: 用户ID
-            data: 简历数据
+            data: 完整简历数据（包含基础信息和子项列表）
 
         Returns:
             Resume: 创建的简历
@@ -148,11 +149,18 @@ class ResumeService:
             full_name=data.full_name,
             phone=data.phone,
             email=data.email,
+            avatar=data.avatar,
+            avatar_ratio=data.avatar_ratio,
             current_city=data.current_city,
             self_evaluation=data.self_evaluation,
         )
 
         self.db.add(resume)
+        await self.db.flush()  # 获取 resume.id
+
+        # 创建子项
+        await self._save_sub_items(resume.id, data)
+
         await self.db.commit()
         await self.db.refresh(resume)
 
@@ -162,27 +170,184 @@ class ResumeService:
     async def update_resume(
         self, resume_id: int, user_id: int, data: ResumeUpdate
     ) -> Resume:
-        """更新简历。
+        """更新简历（支持同时更新子项）。
 
         Args:
             resume_id: 简历ID
             user_id: 用户ID
-            data: 更新数据
+            data: 更新数据（子项列表如果传入则整体替换）
 
         Returns:
             Resume: 更新后的简历
         """
         resume = await self.get_resume_detail(resume_id, user_id)
 
+        # 更新基础字段
+        base_fields = [
+            "resume_type", "title", "full_name", "phone", "email",
+            "avatar", "avatar_ratio", "current_city", "self_evaluation",
+        ]
         update_data = data.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(resume, field, value)
+        for field in base_fields:
+            if field in update_data:
+                setattr(resume, field, update_data[field])
+
+        # 更新子项（整体替换策略）
+        await self._replace_sub_items(resume, data, update_data)
 
         await self.db.commit()
         await self.db.refresh(resume)
 
         logger.info("Resume updated", resume_id=resume_id)
         return resume
+
+    async def _save_sub_items(self, resume_id: int, data) -> None:
+        """保存简历子项数据。跳过关键字段为空的不完整子项。"""
+        # 教育经历 — 至少需要学校名
+        for i, edu in enumerate(data.educations or []):
+            if not edu.school_name:
+                continue
+            self.db.add(Education(
+                resume_id=resume_id,
+                school_name=edu.school_name,
+                degree=edu.degree or "bachelor",
+                major=edu.major or "",
+                start_date=edu.start_date or date.today(),
+                end_date=edu.end_date,
+                gpa=edu.gpa,
+                courses=edu.courses,
+                honors=edu.honors,
+                sort_order=getattr(edu, 'sort_order', i),
+            ))
+
+        # 工作/实习经历 — 至少需要公司名
+        for i, exp in enumerate(data.work_experiences or []):
+            if not exp.company_name:
+                continue
+            exp_type = "internship" if getattr(exp, 'is_internship', False) else "work"
+            self.db.add(WorkExperience(
+                resume_id=resume_id,
+                exp_type=exp_type,
+                company_name=exp.company_name,
+                position=exp.position or "",
+                start_date=exp.start_date or date.today(),
+                end_date=exp.end_date,
+                description=exp.description or "",
+                sort_order=getattr(exp, 'sort_order', i),
+            ))
+
+        # 项目经历 — 至少需要项目名
+        for i, proj in enumerate(data.projects or []):
+            if not proj.project_name:
+                continue
+            self.db.add(Project(
+                resume_id=resume_id,
+                project_name=proj.project_name,
+                role=proj.role or "",
+                start_date=proj.start_date or date.today(),
+                end_date=proj.end_date,
+                project_link=proj.project_link,
+                description=proj.description or "",
+                sort_order=getattr(proj, 'sort_order', i),
+            ))
+
+        # 技能 — 至少需要技能名
+        for i, skill in enumerate(data.skills or []):
+            if not skill.skill_name:
+                continue
+            self.db.add(Skill(
+                resume_id=resume_id,
+                skill_name=skill.skill_name,
+                proficiency=skill.proficiency or "competent",
+                sort_order=getattr(skill, 'sort_order', i),
+            ))
+
+        # 语言能力 — 至少需要语言名
+        for lang in (data.languages or []):
+            if not lang.language:
+                continue
+            self.db.add(Language(
+                resume_id=resume_id,
+                language=lang.language,
+                proficiency=lang.proficiency or "",
+            ))
+
+        # 获奖经历 — 至少需要奖项名
+        for i, award in enumerate(data.awards or []):
+            if not award.award_name:
+                continue
+            self.db.add(Award(
+                resume_id=resume_id,
+                award_name=award.award_name,
+                award_date=award.award_date,
+                description=award.description,
+                sort_order=getattr(award, 'sort_order', i),
+            ))
+
+        # 作品 — 至少需要作品名
+        for i, portfolio in enumerate(data.portfolios or []):
+            if not portfolio.work_name:
+                continue
+            self.db.add(Portfolio(
+                resume_id=resume_id,
+                work_name=portfolio.work_name,
+                work_link=portfolio.work_link,
+                attachment_url=portfolio.attachment_url,
+                description=portfolio.description,
+                sort_order=getattr(portfolio, 'sort_order', i),
+            ))
+
+        # 社交链接 — 至少需要平台名
+        for social in (data.social_links or []):
+            if not social.platform:
+                continue
+            self.db.add(SocialLink(
+                resume_id=resume_id,
+                platform=social.platform,
+                url=social.url or "",
+            ))
+
+    async def _replace_sub_items(self, resume: Resume, data, update_data: dict) -> None:
+        """替换简历子项数据（如果传入了子项列表则删除旧的、创建新的）。"""
+        from sqlalchemy import delete
+
+        sub_item_configs = [
+            ("educations", Education),
+            ("work_experiences", WorkExperience),
+            ("projects", Project),
+            ("skills", Skill),
+            ("languages", Language),
+            ("awards", Award),
+            ("portfolios", Portfolio),
+            ("social_links", SocialLink),
+        ]
+
+        # 只处理明确传入的子项（不为 None）
+        fields_to_replace = set()
+        for field_name, model_class in sub_item_configs:
+            if field_name in update_data and update_data[field_name] is not None:
+                fields_to_replace.add(field_name)
+                # 删除旧的子项
+                await self.db.execute(
+                    delete(model_class).where(model_class.resume_id == resume.id)
+                )
+
+        if not fields_to_replace:
+            return
+
+        # 构造一个只包含需要替换的子项的数据代理
+        class _SubItemProxy:
+            """代理对象，只暴露需要替换的子项字段。"""
+            pass
+
+        proxy = _SubItemProxy()
+        for field_name, _ in sub_item_configs:
+            if field_name in fields_to_replace:
+                setattr(proxy, field_name, getattr(data, field_name, None))
+            else:
+                setattr(proxy, field_name, None)
+
+        await self._save_sub_items(resume.id, proxy)
 
     async def delete_resume(self, resume_id: int, user_id: int) -> None:
         """删除简历。

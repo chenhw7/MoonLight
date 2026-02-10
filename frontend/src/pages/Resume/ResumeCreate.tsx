@@ -80,7 +80,7 @@ const TabNavigation: React.FC = () => {
   const hasData = (tab: TabType): boolean => {
     switch (tab) {
       case 'basic':
-        return !!(formData.name && formData.phone);
+        return !!(formData.full_name && formData.phone);
       case 'education':
         return formData.educations.length > 0;
       case 'work':
@@ -382,11 +382,11 @@ const ResumePreviewContent: React.FC<{ data: ResumeFormData }> = ({ data }) => {
       <header className="border-b-2 border-gray-800 pb-4 mb-6">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">{data.name || '姓名'}</h1>
+            <h1 className="text-3xl font-bold mb-2 text-gray-900">{data.full_name || '姓名'}</h1>
             <div className="text-gray-600">
               {data.phone && <span className="mr-4">{data.phone}</span>}
               {data.email && <span className="mr-4">{data.email}</span>}
-              {data.location && <span>{data.location}</span>}
+              {data.current_city && <span>{data.current_city}</span>}
             </div>
           </div>
 
@@ -464,7 +464,7 @@ const ResumePreviewContent: React.FC<{ data: ResumeFormData }> = ({ data }) => {
           {data.projects.slice(0, 1).map((project, index) => (
             <div key={index}>
               <div className="flex justify-between">
-                <span className="font-semibold text-gray-800">{project.name}</span>
+                <span className="font-semibold text-gray-800">{project.project_name}</span>
                 <span className="text-gray-500 text-xs">
                   {project.start_date} - {project.end_date || '至今'}
                 </span>
@@ -488,7 +488,7 @@ const ResumePreviewContent: React.FC<{ data: ResumeFormData }> = ({ data }) => {
           <div className="flex flex-wrap gap-2">
             {data.skills.slice(0, 5).map((skill, index) => (
               <span key={index} className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-800">
-                {skill.name}
+                {skill.skill_name}
               </span>
             ))}
             {data.skills.length > 5 && (

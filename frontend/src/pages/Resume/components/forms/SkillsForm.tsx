@@ -51,7 +51,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
   // ===== 技能 =====
   const handleAddSkill = () => {
     const newSkill: Skill = {
-      name: '',
+      skill_name: '',
       proficiency: 'competent',
     };
     setValue('skills', [...skills, newSkill], { shouldDirty: true });
@@ -69,8 +69,8 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Label>技能名称</Label>
         <Input
           placeholder="如：JavaScript"
-          value={skill.name}
-          onChange={(e) => handleUpdateSkill(index, { name: e.target.value })}
+          value={skill.skill_name}
+          onChange={(e) => handleUpdateSkill(index, { skill_name: e.target.value })}
         />
       </div>
       <div className="space-y-2">
@@ -161,7 +161,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
   // ===== 获奖经历 =====
   const handleAddAward = () => {
     const newAward: Award = {
-      name: '',
+      award_name: '',
     };
     setValue('awards', [...awards, newAward], { shouldDirty: true });
   };
@@ -178,8 +178,8 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Label>获奖名称</Label>
         <Input
           placeholder="如：国家奖学金"
-          value={award.name}
-          onChange={(e) => handleUpdateAward(index, { name: e.target.value })}
+          value={award.award_name}
+          onChange={(e) => handleUpdateAward(index, { award_name: e.target.value })}
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,8 +187,8 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
           <Label>获奖时间（可选）</Label>
           <Input
             type="month"
-            value={award.date || ''}
-            onChange={(e) => handleUpdateAward(index, { date: e.target.value })}
+            value={award.award_date || ''}
+            onChange={(e) => handleUpdateAward(index, { award_date: e.target.value })}
           />
         </div>
       </div>
@@ -209,7 +209,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
   // ===== 作品展示 =====
   const handleAddPortfolio = () => {
     const newPortfolio: Portfolio = {
-      name: '',
+      work_name: '',
     };
     setValue('portfolios', [...portfolios, newPortfolio], { shouldDirty: true });
   };
@@ -226,9 +226,9 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Label>作品名称</Label>
         <Input
           placeholder="如：个人博客"
-          value={portfolio.name}
+          value={portfolio.work_name}
           onChange={(e) =>
-            handleUpdatePortfolio(index, { name: e.target.value })
+            handleUpdatePortfolio(index, { work_name: e.target.value })
           }
         />
       </div>
@@ -236,9 +236,9 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Label>作品链接（可选）</Label>
         <Input
           placeholder="https://..."
-          value={portfolio.link || ''}
+          value={portfolio.work_link || ''}
           onChange={(e) =>
-            handleUpdatePortfolio(index, { link: e.target.value })
+            handleUpdatePortfolio(index, { work_link: e.target.value })
           }
         />
       </div>
@@ -247,7 +247,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Textarea
           placeholder="作品说明"
           rows={2}
-          value={portfolio.description || ''}
+          value={portfolio.description || ''}}
           onChange={(e) =>
             handleUpdatePortfolio(index, { description: e.target.value })
           }
@@ -323,7 +323,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
               renderItem={renderSkillItem}
               getItemId={(_, index) => `skill-${index}`}
               getItemTitle={(item, index) =>
-                item.name || `技能 ${index + 1}`
+                item.skill_name || `技能 ${index + 1}`
               }
               addButtonText="+ 添加技能"
               emptyText="暂无技能，点击添加"
@@ -374,7 +374,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
               renderItem={renderAwardItem}
               getItemId={(_, index) => `award-${index}`}
               getItemTitle={(item, index) =>
-                item.name || `获奖 ${index + 1}`
+                item.award_name || `获奖 ${index + 1}`
               }
               addButtonText="+ 添加获奖"
               emptyText="暂无获奖经历，点击添加"
@@ -398,7 +398,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
               renderItem={renderPortfolioItem}
               getItemId={(_, index) => `portfolio-${index}`}
               getItemTitle={(item, index) =>
-                item.name || `作品 ${index + 1}`
+                item.work_name || `作品 ${index + 1}`
               }
               addButtonText="+ 添加作品"
               emptyText="暂无作品，点击添加"

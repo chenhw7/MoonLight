@@ -65,17 +65,17 @@ const BasicInfoForm: React.FC = () => {
       {/* 姓名和电话 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">
+          <Label htmlFor="full_name">
             姓名 <span className="text-red-500">*</span>
           </Label>
           <Input
-            id="name"
+            id="full_name"
             placeholder="请输入真实姓名"
-            {...register('name')}
-            className={errors.name ? 'border-red-500' : ''}
+            {...register('full_name')}
+            className={errors.full_name ? 'border-red-500' : ''}
           />
-          {errors.name && (
-            <p className="text-sm text-red-500">{errors.name.message}</p>
+          {errors.full_name && (
+            <p className="text-sm text-red-500">{errors.full_name.message}</p>
           )}
         </div>
 
@@ -115,17 +115,17 @@ const BasicInfoForm: React.FC = () => {
 
       {/* 当前居住地 */}
       <div className="space-y-2">
-        <Label htmlFor="location">
+        <Label htmlFor="current_city">
           当前居住地 <span className="text-red-500">*</span>
         </Label>
         <Input
-          id="location"
+          id="current_city"
           placeholder="如：北京市海淀区"
-          {...register('location')}
-          className={errors.location ? 'border-red-500' : ''}
+          {...register('current_city')}
+          className={errors.current_city ? 'border-red-500' : ''}
         />
-        {errors.location && (
-          <p className="text-sm text-red-500">{errors.location.message}</p>
+        {errors.current_city && (
+          <p className="text-sm text-red-500">{errors.current_city.message}</p>
         )}
       </div>
 
