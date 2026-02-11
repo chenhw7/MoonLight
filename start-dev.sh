@@ -55,7 +55,9 @@ fi
 # ============================================================================
 # 第 3 步：更新前端环境变量
 # ============================================================================
-echo -e "${YELLOW}[3/5] 更新前端代理配置...${NC}"
+echo -e "${YELLOW}[3/5] 更新前端配置...${NC}"
+
+# 更新 .env.local
 cat > "$FRONTEND_DIR/.env.local" <<EOF
 # === 由 start-dev.sh 自动生成，请勿手动修改 ===
 # 生成时间: $(date '+%Y-%m-%d %H:%M:%S')
@@ -67,7 +69,9 @@ VITE_API_URL=/api/v1
 # 后端实际地址（Vite 代理目标，仅开发服务器使用，不暴露给浏览器）
 BACKEND_URL=http://${WSL_IP}:8000
 EOF
-echo -e "${GREEN}   ✅ 已更新 frontend/.env.local (BACKEND_URL=http://${WSL_IP}:8000)${NC}"
+
+# 启用文件监听轮询（解决 WSL 访问 Windows 文件系统时的热更新问题）
+echo -e "${GREEN}   ✅ 已更新 .env.local (启用了文件轮询)${NC}"
 
 # ============================================================================
 # 第 4 步：启动后端（后台进程）
@@ -116,6 +120,14 @@ echo -e "${YELLOW}提示: 按 Ctrl+C 可停止前端服务${NC}"
 echo -e "${YELLOW}后端日志: tail -f $PROJECT_ROOT/backend.log${NC}"
 echo ""
 
-# 启动前端 (在当前终端运行)
+# 启动前端 (使用 WSL 优化配置)
 cd "$FRONTEND_DIR"
-npm run dev
+
+# 检查是否存在 WSL 专用配置
+if [ -f "vite.config.wsl.ts" ]; then
+    echo -e "${GREEN}✅ 使用 WSL 优化配置（文件轮询已启用）${NC}"
+    npx vite --config vite.config.wsl.ts
+else
+    echo -e "${YELLOW}⚠️  使用默认配置（热更新可能不稳定）${NC}"
+    npm run dev
+fi

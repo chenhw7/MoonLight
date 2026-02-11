@@ -34,6 +34,22 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
   const helpers = useResumeHelpers();
 
   /**
+   * 禁用背景滚动
+   */
+  React.useEffect(() => {
+    // 保存原始的 overflow 值
+    const originalOverflow = document.body.style.overflow;
+    
+    // 禁用 body 滚动
+    document.body.style.overflow = 'hidden';
+    
+    // 清理函数：恢复原始滚动
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  /**
    * 处理缩放
    */
   const handleZoomIn = () => {
@@ -109,6 +125,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '24px',
+            minHeight: '100%',
+            width: 'fit-content',
+            margin: '0 auto',
           }}
         >
           {/* 智能分页：自动测量并将内容分配到多个 A4 页面 */}
