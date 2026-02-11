@@ -5,3 +5,4 @@
  */
 
 export { default as ResumeCreate } from './ResumeCreate';
+export { ResumeList } from './ResumeList';

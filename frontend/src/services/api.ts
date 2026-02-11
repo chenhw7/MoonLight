@@ -20,6 +20,24 @@ const apiConfig: AxiosRequestConfig = {
   },
 };
 
+// 刷新 Token 相关的状态
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token!);
+    }
+  });
+  failedQueue = [];
+};
+
 // 创建 axios 实例
 const axiosInstance = axios.create(apiConfig);
 
@@ -68,9 +86,9 @@ axiosInstance.interceptors.response.use(
     });
 
     // 处理 401 未授权错误
-    if (response?.status === 401) {
+    if (response?.status === 401 && config) {
       const currentPath = window.location.pathname;
-      const isAuthEndpoint = config?.url?.includes('/auth/');
+      const isAuthEndpoint = config.url?.includes('/auth/');
       const isLoginPage = currentPath === '/login';
 
       // 如果是登录相关接口或已在登录页，不自动跳转，让调用方处理错误
@@ -78,9 +96,80 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // 清除本地存储的 token
+      // 如果正在刷新，将请求加入队列
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            config.headers.Authorization = `Bearer ${token}`;
+            return axiosInstance(config);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+
+      // 尝试刷新 Token
+      if (refreshToken && !(config as any)._retry) {
+        (config as any)._retry = true;
+        isRefreshing = true;
+
+        try {
+          logger.info('Refreshing access token...');
+          // 使用原生 axios 发送请求，避免拦截器循环
+          // 注意：baseURL 可能以 / 结尾，也可能不
+          const baseURL = apiConfig.baseURL?.endsWith('/') ? apiConfig.baseURL.slice(0, -1) : apiConfig.baseURL;
+          const refreshUrl = `${baseURL}/auth/refresh`;
+          
+          const refreshResponse = await axios.post(
+            refreshUrl,
+            { refresh_token: refreshToken }
+          );
+
+          // 假设后端返回结构是 { code: 200, message: 'success', data: { access_token: '...' } }
+          const { access_token } = refreshResponse.data.data;
+
+          if (!access_token) {
+            throw new Error('No access token in refresh response');
+          }
+
+          logger.info('Token refreshed successfully');
+
+          // 更新 token
+          const storage = localStorage.getItem('refresh_token') ? localStorage : sessionStorage;
+          storage.setItem('access_token', access_token);
+
+          // 处理队列
+          processQueue(null, access_token);
+
+          // 重试当前请求
+          config.headers.Authorization = `Bearer ${access_token}`;
+          return axiosInstance(config);
+        } catch (refreshError) {
+          logger.error('Token refresh failed', { error: refreshError });
+          processQueue(refreshError, null);
+          
+          // 刷新失败，清除 token 并跳转
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          sessionStorage.removeItem('access_token');
+          sessionStorage.removeItem('refresh_token');
+          
+          if (currentPath !== '/login') {
+            window.location.href = '/login';
+          }
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+
+      // 无 refresh token 或重试失败，清除本地存储的 token 并跳转
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
 
       // 跳转到登录页
       if (currentPath !== '/login') {

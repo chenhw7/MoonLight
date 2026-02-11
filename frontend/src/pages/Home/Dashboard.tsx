@@ -1,47 +1,41 @@
 /**
  * 仪表盘页面
  *
- * 主页的主要内容区域，包含问候语、统计卡片和最近活动
- * 采用大厂标准：静态数据，避免随机数导致的重渲染
+ * 主页的主要内容区域，包含问候语和最近的简历
  */
 
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2, ArrowRight } from 'lucide-react';
+import { getResumeList } from '@/services/resume';
+import { ResumeBase } from '@/types/resume';
+import { ResumeCard } from '@/components/resume/ResumeCard';
+import { createLogger } from '@/utils/logger';
 
-interface StatItem {
-  title: string;
-  value: number;
-  change: number;
-  trend: string;
-}
-
-interface ActivityItem {
-  action: string;
-  time: string;
-}
-
-// 静态数据定义，避免每次渲染重新生成
-const STATS_DATA: StatItem[] = [
-  { title: '待处理', value: 12, change: 17, trend: '增加' },
-  { title: '已完成', value: 45, change: 12, trend: '增长' },
-  { title: '进行中', value: 8, change: 2, trend: '增长' },
-  { title: '总计', value: 65, change: 12, trend: '增长' },
-];
-
-const ACTIVITIES_DATA: ActivityItem[] = [
-  { action: '完成任务 "用户认证模块"', time: '2小时前' },
-  { action: '更新了文档 "API 接口规范"', time: '5小时前' },
-  { action: '提交了代码变更', time: '昨天' },
-];
+const logger = createLogger('Dashboard');
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const [recentResumes, setRecentResumes] = useState<ResumeBase[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 使用 useMemo 确保数据稳定性
-  const stats = useMemo(() => STATS_DATA, []);
-  const activities = useMemo(() => ACTIVITIES_DATA, []);
+  useEffect(() => {
+    const fetchRecentResumes = async () => {
+      try {
+        setLoading(true);
+        // 获取第一页，5条数据
+        const response = await getResumeList(1, 5);
+        setRecentResumes(response.items || []);
+      } catch (error) {
+        logger.error('Failed to fetch recent resumes', { error });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentResumes();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -49,47 +43,59 @@ export function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold">👋 欢迎回来！</h1>
           <p className="text-muted-foreground mt-2">
-            这里是您的工作台，一切尽在掌握。
+            这里是您的工作台，继续完善您的简历吧。
           </p>
         </div>
-        <Button onClick={() => navigate('/resume/create')}>
-          <Plus className="w-4 h-4 mr-2" />
-          创建简历
-        </Button>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.title}
-            className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm"
-          >
-            <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </span>
-            </div>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              比上周 {stat.trend} {stat.change}%
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">📋 最近活动</h2>
-        <div className="space-y-4">
-          {activities.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between py-2 border-b last:border-0 last:pb-0"
-            >
-              <span className="text-sm">{item.action}</span>
-              <span className="text-xs text-muted-foreground">{item.time}</span>
-            </div>
-          ))}
+        <div className="flex gap-2">
+           <Button variant="outline" onClick={() => navigate('/resumes')}>
+            我的简历
+          </Button>
+          <Button onClick={() => navigate('/resume/create')}>
+            <Plus className="w-4 h-4 mr-2" />
+            创建简历
+          </Button>
         </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">最近编辑</h2>
+          {recentResumes.length > 0 && (
+            <Button variant="link" onClick={() => navigate('/resumes')} className="text-sm">
+              查看全部 <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : recentResumes.length === 0 ? (
+          <div className="text-center py-12 border rounded-xl bg-card">
+            <h3 className="text-lg font-medium">还没有简历</h3>
+            <p className="text-muted-foreground mt-2 mb-4">
+              您还没有创建过简历，立即开始吧！
+            </p>
+            <Button onClick={() => navigate('/resume/create')}>
+              创建第一份简历
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {recentResumes.map((resume) => (
+              <div key={resume.id} className="h-full">
+                {/* 在仪表盘只显示编辑按钮，不显示复制和删除，保持简洁 */}
+                <ResumeCard 
+                  resume={resume} 
+                  showActions={true}
+                  onCopy={undefined} 
+                  onDelete={undefined}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

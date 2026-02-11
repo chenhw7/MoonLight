@@ -7,14 +7,15 @@
 import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Save, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useResumeStore, useAutoSave, useBeforeUnloadWarning } from '@/stores/resumeStore';
 import { createLogger } from '@/utils/logger';
+import { getResumeDetail } from '@/services/resume';
 import type { ResumeFormData, TabType } from '@/types/resume';
-import { resumeSchema, TABS_CONFIG } from '@/types/resume';
+import { resumeSchema, TABS_CONFIG, DEFAULT_RESUME_DATA } from '@/types/resume';
 
 // 导入表单组件
 import BasicInfoForm from './components/forms/BasicInfoForm';
@@ -216,12 +217,16 @@ const FooterNavigation: React.FC = () => {
  */
 const ResumeCreate: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const {
     formData,
     isDirty,
     isSaving,
     isPreviewOpen,
+    resumeId,
     saveResume,
+    loadResume,
+    resetForm,
     togglePreview,
     updateFormData,
   } = useResumeStore();
@@ -233,9 +238,63 @@ const ResumeCreate: React.FC = () => {
     mode: 'onChange',
   });
 
+  const isInitializing = React.useRef(false);
+  const prevDataRef = React.useRef<ResumeFormData | null>(null);
+
+  // 加载简历数据
+  React.useEffect(() => {
+    const init = async () => {
+      if (id) {
+        // 编辑模式：加载现有简历
+        try {
+          isInitializing.current = true;
+          const data = await getResumeDetail(Number(id));
+          loadResume(data);
+          // 记录初始数据，用于后续比对
+          prevDataRef.current = data;
+          methods.reset(data);
+          // 重置初始化标志，稍微延迟以确保 watch 不会误触发 dirty 状态
+          setTimeout(() => {
+            isInitializing.current = false;
+          }, 300);
+        } catch (error) {
+          logger.error('Failed to load resume', { error, id });
+          alert('加载简历失败，请重试');
+          navigate('/resumes');
+        }
+      } else {
+        // 创建模式
+        // 如果之前是在编辑已保存的简历（resumeId 存在），则重置为新简历
+        // 如果是草稿（resumeId 为 null），则保留草稿
+        const currentStoreId = useResumeStore.getState().resumeId;
+        if (currentStoreId) {
+          resetForm();
+          methods.reset(DEFAULT_RESUME_DATA);
+          prevDataRef.current = DEFAULT_RESUME_DATA;
+        } else {
+          // 如果是草稿，初始化基准数据为当前表单值
+          prevDataRef.current = methods.getValues();
+        }
+      }
+    };
+
+    init();
+  }, [id, navigate, loadResume, resetForm, methods]);
+
   // 监听表单变化，同步到 store
   React.useEffect(() => {
     const subscription = methods.watch((value) => {
+      if (isInitializing.current) return;
+
+      // 简单的深度比较，避免无意义的更新导致 isDirty 变 true
+      const currentStr = JSON.stringify(value);
+      const prevStr = JSON.stringify(prevDataRef.current);
+
+      if (currentStr === prevStr) {
+        return;
+      }
+
+      prevDataRef.current = value as ResumeFormData;
       updateFormData(value as Partial<ResumeFormData>);
     });
     return () => subscription.unsubscribe();

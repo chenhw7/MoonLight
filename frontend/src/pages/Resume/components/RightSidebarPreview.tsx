@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { ResumeFormData } from '@/types/resume';
 import ModernTemplate from './templates/ModernTemplate';
 import { useResumeHelpers } from '@/hooks/useResumeHelpers';
+import { useSmartPagination } from '@/hooks/useSmartPagination';
 import { Card } from '@/components/ui/card';
 
 interface RightSidebarPreviewProps {
@@ -153,69 +154,11 @@ const SmartPaginationWithPageIndicator: React.FC<SmartPaginationWithPageIndicato
   scale,
   onPagesCalculated,
 }) => {
-  const [pages, setPages] = useState<string[][]>([]);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  // A4 页面内容可用高度（去除边距）
-  const PAGE_HEIGHT_PX = 986;
+  const { pages, measureRef } = useSmartPagination(children);
 
   useEffect(() => {
-    // 清理上一次调度
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-
-    const doMeasure = () => {
-      if (!measureRef.current) return;
-
-      const templateRoot = measureRef.current.firstElementChild as HTMLElement | null;
-      if (!templateRoot) return;
-
-      const blocks = Array.from(templateRoot.children) as HTMLElement[];
-      if (blocks.length === 0) return;
-
-      // 智能分页算法
-      const result: string[][] = [];
-      let currentPage: string[] = [];
-      let usedHeight = 0;
-
-      for (const block of blocks) {
-        const blockH = block.offsetHeight;
-        const cs = window.getComputedStyle(block);
-        const mt = parseFloat(cs.marginTop) || 0;
-        const mb = parseFloat(cs.marginBottom) || 0;
-        const totalH = blockH + mt + mb;
-
-        // 放不下且当前页已有内容 → 换页
-        if (usedHeight + totalH > PAGE_HEIGHT_PX && currentPage.length > 0) {
-          result.push(currentPage);
-          currentPage = [];
-          usedHeight = 0;
-        }
-
-        currentPage.push(block.outerHTML);
-        usedHeight += totalH;
-      }
-
-      if (currentPage.length > 0) {
-        result.push(currentPage);
-      }
-
-      setPages(result);
-      onPagesCalculated(result);
-    };
-
-    // 等待渲染完成后再测量
-    rafRef.current = requestAnimationFrame(() => {
-      timerRef.current = setTimeout(doMeasure, 200);
-    });
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [children, onPagesCalculated, PAGE_HEIGHT_PX]);
+    onPagesCalculated(pages);
+  }, [pages, onPagesCalculated]);
 
   return (
     <>
@@ -226,7 +169,7 @@ const SmartPaginationWithPageIndicator: React.FC<SmartPaginationWithPageIndicato
         style={{
           position: 'absolute',
           left: '-9999px',
-          width: '794px', // A4 宽度
+          width: '174mm', // 与 SmartPagination 保持一致 (210mm - 18mm*2)
           visibility: 'hidden',
           pointerEvents: 'none',
         }}
@@ -253,7 +196,7 @@ const SmartPaginationWithPageIndicator: React.FC<SmartPaginationWithPageIndicato
                 style={{
                   width: '794px',
                   minHeight: '1123px',
-                  padding: '68px 57px',
+                  padding: '68px 68px',
                   transform: `scale(${scale})`,
                   transformOrigin: 'top left',
                 }}

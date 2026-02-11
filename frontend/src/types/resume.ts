@@ -127,6 +127,8 @@ export interface ResumeBase {
   current_city?: string;
   self_evaluation?: string;
   is_default?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /** 完整简历 */

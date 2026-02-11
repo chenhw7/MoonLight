@@ -5,8 +5,9 @@
  * 确保每个 section 不被截断，预览和 PDF 导出效果一致
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import PageContainer from './PageContainer';
+import { useSmartPagination } from '@/hooks/useSmartPagination';
 
 interface SmartPaginationProps {
   children: React.ReactNode;
@@ -22,74 +23,8 @@ interface SmartPaginationProps {
  * 4. 用 outerHTML + dangerouslySetInnerHTML 将内容渲染到各 PageContainer
  */
 const SmartPagination: React.FC<SmartPaginationProps> = ({ children }) => {
-  const [pages, setPages] = useState<string[][]>([]);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  // A4 页面内容可用高度
-  // 总高 297mm − 上下边距 18mm × 2 = 261mm
-  // 261mm × 3.7795 px/mm ≈ 986px
-  const PAGE_HEIGHT_PX = 986;
-
-  useEffect(() => {
-    // 清理上一次调度
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-
-    const doMeasure = () => {
-      if (!measureRef.current) return;
-
-      // ★ 关键：ModernTemplate 渲染为一个根 <div>，
-      //   其直接子元素才是 header / section 等内容块
-      const templateRoot = measureRef.current.firstElementChild as HTMLElement | null;
-      if (!templateRoot) return;
-
-      const blocks = Array.from(templateRoot.children) as HTMLElement[];
-      if (blocks.length === 0) return;
-
-      // ---- 智能分页算法 ----
-      const result: string[][] = [];
-      let currentPage: string[] = [];
-      let usedHeight = 0;
-
-      for (const block of blocks) {
-        const blockH = block.offsetHeight;
-        const cs = window.getComputedStyle(block);
-        const mt = parseFloat(cs.marginTop) || 0;
-        const mb = parseFloat(cs.marginBottom) || 0;
-        const totalH = blockH + mt + mb;
-
-        // 放不下且当前页已有内容 → 换页
-        if (usedHeight + totalH > PAGE_HEIGHT_PX && currentPage.length > 0) {
-          result.push(currentPage);
-          currentPage = [];
-          usedHeight = 0;
-        }
-
-        currentPage.push(block.outerHTML);
-        usedHeight += totalH;
-      }
-
-      if (currentPage.length > 0) {
-        result.push(currentPage);
-      }
-
-      setPages(result);
-    };
-
-    // 等待隐藏容器完成渲染后再测量
-    // requestAnimationFrame 确保 DOM 已就绪，setTimeout 等待字体/样式生效
-    rafRef.current = requestAnimationFrame(() => {
-      timerRef.current = setTimeout(doMeasure, 200);
-    });
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [children]);
-
+  const { pages, measureRef } = useSmartPagination(children);
+  
   const totalPages = Math.max(1, pages.length);
 
   return (

@@ -16,7 +16,7 @@ import { ForgotPasswordPage } from '@/pages/ForgotPassword';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/Home';
-import { ResumeCreate } from '@/pages/Resume';
+import { ResumeCreate, ResumeList } from '@/pages/Resume';
 
 const logger = createLogger('App');
 
@@ -147,7 +147,23 @@ function App() {
             }
           />
           <Route
+            path="/resumes"
+            element={
+              <ProtectedRoute>
+                <ResumeList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/resume/create"
+            element={
+              <ProtectedRoute>
+                <ResumeCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resume/edit/:id"
             element={
               <ProtectedRoute>
                 <ResumeCreate />

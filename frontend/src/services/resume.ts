@@ -26,6 +26,24 @@ const logger = createLogger('ResumeService');
 // API 基础 URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+// 刷新 Token 相关的状态
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token!);
+    }
+  });
+  failedQueue = [];
+};
+
 /**
  * 从 localStorage 或 sessionStorage 获取 token
  */
@@ -70,8 +88,59 @@ resumeApi.interceptors.response.use(
     }
     return response.data;
   },
-  (error) => {
+  async (error) => {
     const status = error.response?.status;
+
+    // 处理 401 自动刷新 Token
+    if (status === 401 && error.config) {
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            error.config.headers.Authorization = `Bearer ${token}`;
+            return resumeApi(error.config);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+
+      if (refreshToken && !(error.config as any)._retry) {
+        (error.config as any)._retry = true;
+        isRefreshing = true;
+
+        try {
+          const baseURL = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+          const refreshResponse = await axios.post(`${baseURL}/auth/refresh`, {
+            refresh_token: refreshToken
+          });
+
+          const { access_token } = refreshResponse.data.data;
+
+          if (!access_token) throw new Error('No access token');
+
+          const storage = localStorage.getItem('refresh_token') ? localStorage : sessionStorage;
+          storage.setItem('access_token', access_token);
+
+          processQueue(null, access_token);
+
+          error.config.headers.Authorization = `Bearer ${access_token}`;
+          return resumeApi(error.config);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          sessionStorage.removeItem('access_token');
+          sessionStorage.removeItem('refresh_token');
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+    }
+
     const responseData = error.response?.data;
 
     // 详细记录错误信息
@@ -356,7 +425,7 @@ export async function addProject(
   resumeId: number,
   data: Omit<Project, 'id'>
 ): Promise<Project> {
-  logger.info('Adding project', { resumeId, project: data.name });
+  logger.info('Adding project', { resumeId, project: data.project_name });
 
   const response = await resumeApi.post(
     `/resumes/${resumeId}/projects`,
@@ -417,7 +486,7 @@ export async function addSkill(
   resumeId: number,
   data: Omit<Skill, 'id'>
 ): Promise<Skill> {
-  logger.info('Adding skill', { resumeId, skill: data.name });
+  logger.info('Adding skill', { resumeId, skill: data.skill_name });
 
   const response = await resumeApi.post(
     `/resumes/${resumeId}/skills`,
@@ -538,7 +607,7 @@ export async function addAward(
   resumeId: number,
   data: Omit<Award, 'id'>
 ): Promise<Award> {
-  logger.info('Adding award', { resumeId, award: data.name });
+  logger.info('Adding award', { resumeId, award: data.award_name });
 
   const response = await resumeApi.post(
     `/resumes/${resumeId}/awards`,
@@ -596,7 +665,7 @@ export async function addPortfolio(
   resumeId: number,
   data: Omit<Portfolio, 'id'>
 ): Promise<Portfolio> {
-  logger.info('Adding portfolio', { resumeId, portfolio: data.name });
+  logger.info('Adding portfolio', { resumeId, portfolio: data.work_name });
 
   const response = await resumeApi.post(
     `/resumes/${resumeId}/portfolios`,

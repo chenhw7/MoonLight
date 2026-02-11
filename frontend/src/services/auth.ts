@@ -80,7 +80,7 @@ export const authApi = {
    * 刷新令牌
    */
   refreshToken: (refreshToken: string) =>
-    api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken }),
+    api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refresh_token: refreshToken }),
 };
 
 export default authApi;

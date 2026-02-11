@@ -5,7 +5,7 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
-import { Moon, ChevronDown, LogOut, User, Settings } from 'lucide-react';
+import { Moon, ChevronDown, LogOut, User, Settings, FileText, Plus, List } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { createLogger } from '@/utils/logger';
@@ -19,7 +19,6 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: '仪表盘', path: '/home' },
   { label: '项目', path: '/projects' },
   { label: '团队', path: '/team' },
   { label: '设置', path: '/settings' },
@@ -29,15 +28,25 @@ export function Header() {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  
+  // User Menu State
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Resume Menu State
+  const [isResumeMenuOpen, setIsResumeMenuOpen] = useState(false);
+  const resumeMenuRef = useRef<HTMLDivElement>(null);
 
   logger.debug('Header rendered', { path: location.pathname });
 
   const handleCloseMenu = useCallback(() => {
     setIsMenuOpen(false);
     buttonRef.current?.focus();
+  }, []);
+
+  const handleCloseResumeMenu = useCallback(() => {
+    setIsResumeMenuOpen(false);
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -48,11 +57,12 @@ export function Header() {
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === 'Escape' && isMenuOpen) {
-        handleCloseMenu();
+      if (event.key === 'Escape') {
+        if (isMenuOpen) handleCloseMenu();
+        if (isResumeMenuOpen) handleCloseResumeMenu();
       }
     },
-    [isMenuOpen, handleCloseMenu]
+    [isMenuOpen, isResumeMenuOpen, handleCloseMenu, handleCloseResumeMenu]
   );
 
   useEffect(() => {
@@ -64,11 +74,17 @@ export function Header() {
       ) {
         handleCloseMenu();
       }
+      if (
+        resumeMenuRef.current &&
+        !resumeMenuRef.current.contains(event.target as Node)
+      ) {
+        handleCloseResumeMenu();
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [handleCloseMenu]);
+  }, [handleCloseMenu, handleCloseResumeMenu]);
 
   const getInitials = (name: string): string => {
     return name.charAt(0).toUpperCase();
@@ -80,6 +96,8 @@ export function Header() {
     }
     return location.pathname.startsWith(path);
   };
+
+  const isResumeActive = location.pathname.startsWith('/resume');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -96,6 +114,63 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
+            {/* 仪表盘 */}
+            <Link
+                to="/home"
+                className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  isActive('/home')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                仪表盘
+            </Link>
+
+            {/* 简历管理 Dropdown */}
+            <div 
+              className="relative" 
+              ref={resumeMenuRef}
+              onMouseEnter={() => setIsResumeMenuOpen(true)}
+              onMouseLeave={() => setIsResumeMenuOpen(false)}
+            >
+              <button
+                className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  isResumeActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                onClick={() => setIsResumeMenuOpen(!isResumeMenuOpen)}
+              >
+                简历管理
+                <ChevronDown className={`h-3 w-3 transition-transform ${isResumeMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isResumeMenuOpen && (
+                <div
+                  className="absolute left-0 top-full pt-1 w-48 animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <div className="rounded-md border bg-popover p-1 shadow-lg">
+                    <Link
+                      to="/resume/create"
+                      onClick={() => setIsResumeMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Plus className="h-4 w-4" />
+                      新建简历
+                    </Link>
+                    <Link
+                      to="/resumes"
+                      onClick={() => setIsResumeMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <List className="h-4 w-4" />
+                      我的简历
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.path}
