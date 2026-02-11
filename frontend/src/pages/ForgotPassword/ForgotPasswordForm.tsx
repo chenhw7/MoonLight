@@ -41,8 +41,11 @@ export function ForgotPasswordForm({ onNavigateToLogin: _onNavigateToLogin }: Fo
     if (pwd.length < 8) {
       return { valid: false, message: '密码至少需要8位字符' };
     }
-    if (!/[a-zA-Z]/.test(pwd)) {
-      return { valid: false, message: '密码需要包含字母' };
+    if (!/[A-Z]/.test(pwd)) {
+      return { valid: false, message: '密码需要包含大写字母' };
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return { valid: false, message: '密码需要包含小写字母' };
     }
     if (!/\d/.test(pwd)) {
       return { valid: false, message: '密码需要包含数字' };

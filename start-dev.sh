@@ -3,13 +3,13 @@
 # MoonLight 开发环境启动脚本 (WSL 版本)
 #
 # 使用方式: 
-#   cd /mnt/d/cv_study/MoonLight
+#   cd /path/to/project
 #   ./start-dev.sh
 #
 
 set -e  # 遇到错误立即退出
 
-PROJECT_ROOT="/mnt/d/cv_study/MoonLight"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 

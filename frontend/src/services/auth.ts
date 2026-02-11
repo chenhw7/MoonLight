@@ -72,8 +72,8 @@ export const authApi = {
   resetPassword: (email: string, code: string, newPassword: string) =>
     api.post<ApiResponse<void>>('/auth/reset-password', {
       email,
-      code,
-      newPassword,
+      verification_code: code,
+      new_password: newPassword,
     }),
 
   /**
