@@ -253,9 +253,12 @@ const ResumeCreate: React.FC = () => {
     try {
       await saveResume();
       alert('简历保存成功！');
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to save resume', { error });
-      alert('保存失败，请重试');
+      // 显示详细错误信息
+      const err = error as { displayMessage?: string; message?: string };
+      const message = err?.displayMessage || err?.message || '未知错误';
+      alert(`保存失败: ${message}`);
     }
   };
 
@@ -267,8 +270,11 @@ const ResumeCreate: React.FC = () => {
     try {
       await saveResume();
       navigate('/home');
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to submit resume', { error });
+      const err = error as { displayMessage?: string; message?: string };
+      const message = err?.displayMessage || err?.message || '未知错误';
+      alert(`提交失败: ${message}`);
     }
   };
 

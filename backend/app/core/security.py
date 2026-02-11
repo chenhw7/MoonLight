@@ -6,10 +6,14 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.database import get_db
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -206,34 +210,36 @@ def create_token_pair(user_id: str, email: str) -> Tuple[str, str]:
     return access_token, refresh_token
 
 
-# FastAPI 依赖函数
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
+# HTTP Bearer 认证方案
 security = HTTPBearer()
 
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Dict[str, Any]:
+    db: AsyncSession = Depends(get_db),
+) -> "User":
     """获取当前用户。
 
-    从 JWT 令牌中解析并验证用户信息，用于保护需要认证的 API。
+    从 JWT 令牌中解析并验证用户信息，然后从数据库查询完整用户对象。
 
     Args:
         credentials: HTTP 认证凭据，包含 Bearer 令牌
+        db: 数据库会话
 
     Returns:
-        Dict[str, Any]: 包含用户信息的字典，包括 user_id 和 email
+        User: 用户对象
 
     Raises:
-        HTTPException: 令牌无效或过期时抛出 401 错误
+        HTTPException: 令牌无效、过期或用户不存在时抛出 401 错误
 
     Example:
         >>> @app.get("/protected")
-        ... async def protected_route(user: dict = Depends(get_current_user)):
-        ...     return {"message": f"Hello, {user['email']}"}
+        ... async def protected_route(user: User = Depends(get_current_user)):
+        ...     return {"message": f"Hello, {user.email}"}
     """
+    from app.models.user import User
+    from sqlalchemy import select
+
     token = credentials.credentials
     payload = decode_token(token)
 
@@ -254,4 +260,16 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return {"user_id": int(user_id), "email": email}
+    # 从数据库查询用户
+    result = await db.execute(select(User).where(User.id == int(user_id)))
+    user = result.scalar_one_or_none()
+
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
+

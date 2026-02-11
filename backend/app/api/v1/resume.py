@@ -7,6 +7,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import get_db
 from app.core.exceptions import NotFoundError, AuthorizationError, ValidationError
@@ -104,7 +105,14 @@ async def create_resume(
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ResumeDetailResponse]:
     """创建简历。"""
-    logger.info("API: create_resume", user_id=current_user.id, resume_type=data.resume_type)
+    avatar_len = len(data.avatar) if data.avatar else 0
+    logger.info(
+        "API: create_resume",
+        user_id=current_user.id,
+        resume_type=data.resume_type,
+        has_avatar=bool(data.avatar),
+        avatar_length=avatar_len,
+    )
 
     try:
         resume = await resume_service.create_resume(current_user.id, data)
@@ -112,7 +120,20 @@ async def create_resume(
         resume = await resume_service.get_resume_detail(resume.id, current_user.id)
         return ResponseModel(data=ResumeDetailResponse.model_validate(resume))
     except ValidationError as e:
+        logger.warning("Validation error in create_resume", error=str(e))
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())
+    except SQLAlchemyError as e:
+        logger.error("Database error in create_resume", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"数据库错误: {str(e)}", "error": "DATABASE_ERROR"},
+        )
+    except Exception as e:
+        logger.error("Unexpected error in create_resume", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"服务器错误: {str(e)}", "error": "INTERNAL_ERROR"},
+        )
 
 
 @router.get(
@@ -151,7 +172,14 @@ async def update_resume(
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ResumeDetailResponse]:
     """更新简历。"""
-    logger.info("API: update_resume", resume_id=resume_id)
+    avatar_len = len(data.avatar) if data.avatar else 0
+    logger.info(
+        "API: update_resume",
+        resume_id=resume_id,
+        user_id=current_user.id,
+        has_avatar=bool(data.avatar),
+        avatar_length=avatar_len,
+    )
 
     try:
         resume = await resume_service.update_resume(resume_id, current_user.id, data)
@@ -161,6 +189,18 @@ async def update_resume(
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())
     except AuthorizationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())
+    except SQLAlchemyError as e:
+        logger.error("Database error in update_resume", error=str(e), resume_id=resume_id, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"数据库错误: {str(e)}", "error": "DATABASE_ERROR"},
+        )
+    except Exception as e:
+        logger.error("Unexpected error in update_resume", error=str(e), resume_id=resume_id, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"服务器错误: {str(e)}", "error": "INTERNAL_ERROR"},
+        )
 
 
 @router.delete(

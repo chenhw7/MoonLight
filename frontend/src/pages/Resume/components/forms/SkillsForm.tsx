@@ -247,7 +247,7 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         <Textarea
           placeholder="作品说明"
           rows={2}
-          value={portfolio.description || ''}}
+          value={portfolio.description || ''}
           onChange={(e) =>
             handleUpdatePortfolio(index, { description: e.target.value })
           }

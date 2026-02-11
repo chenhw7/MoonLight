@@ -31,8 +31,8 @@ axiosInstance.interceptors.request.use(
       data: config.data,
     });
 
-    // 从 localStorage 获取 token
-    const token = localStorage.getItem('access_token');
+    // 从 localStorage 或 sessionStorage 获取 token
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

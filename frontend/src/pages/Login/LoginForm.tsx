@@ -64,10 +64,10 @@ export function LoginForm({ onNavigateToRegister, onNavigateToForgotPassword }: 
     setErrorMessage('');
 
     try {
-      const response = await authApi.login({ email, password }) as unknown as ApiResponse<AuthResponse>;
-      const { user, accessToken, refreshToken } = response.data;
+      const response = await authApi.login({ email, password }) as unknown as ApiResponse<any>;
+      const { user, access_token, refresh_token } = response.data;
 
-      setAuth(user, accessToken, refreshToken);
+      setAuth(user, access_token, refresh_token);
       logger.info('Login successful', { userId: user.id, email: user.email, rememberMe });
 
       navigate('/home');

@@ -127,10 +127,10 @@ export function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
         password,
         verification_code: fullCode,
         username: generateUsername(email),
-      }) as unknown as ApiResponse<AuthResponse>;
+      }) as unknown as ApiResponse<any>;
 
-      const { user, accessToken, refreshToken } = response.data;
-      setAuth(user, accessToken, refreshToken);
+      const { user, access_token, refresh_token } = response.data;
+      setAuth(user, access_token, refresh_token);
       logger.info('Registration successful', { userId: user.id, email: user.email });
 
       navigate('/home');

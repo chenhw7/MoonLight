@@ -8,8 +8,10 @@ import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.v1 import router as api_v1_router
 from app.core.config import get_settings
@@ -107,17 +109,19 @@ async def logging_middleware(request: Request, call_next):
 
     # 读取请求体
     request_body = None
+    body_size = 0
     if method in ["POST", "PUT", "PATCH"]:
         try:
             body = await request.body()
+            body_size = len(body) if body else 0
             if body:
                 try:
                     request_body = body.decode("utf-8")
-                    # 限制日志长度，避免过大
-                    if len(request_body) > 1000:
-                        request_body = request_body[:1000] + "... [truncated]"
+                    # 限制日志长度，避免过大（base64 头像数据可能很大）
+                    if len(request_body) > 500:
+                        request_body = request_body[:500] + f"... [truncated, total {body_size} bytes]"
                 except UnicodeDecodeError:
-                    request_body = "[binary data]"
+                    request_body = f"[binary data, {body_size} bytes]"
             # 重新设置请求体，以便后续处理
             async def receive():
                 return {"type": "http.request", "body": body}
@@ -129,6 +133,7 @@ async def logging_middleware(request: Request, call_next):
     start_time = time.time()
     log_data = {
         "query": str(request.query_params),
+        "body_size": body_size,
     }
     if request_body:
         log_data["body"] = request_body
@@ -139,7 +144,7 @@ async def logging_middleware(request: Request, call_next):
         response = await call_next(request)
         process_time = (time.time() - start_time) * 1000
 
-        # 读取响应体（仅开发环境）
+        # 读取响应体（仅开发环境，且跳过大响应避免性能问题）
         response_body = None
         if settings.is_development and response.status_code != 204:
             try:
@@ -148,14 +153,18 @@ async def logging_middleware(request: Request, call_next):
                     response_body_chunks = []
                     async for chunk in response.body_iterator:
                         response_body_chunks.append(chunk)
-                    response_body = b"".join(response_body_chunks).decode("utf-8")
-                    # 限制日志长度
-                    if len(response_body) > 1000:
-                        response_body = response_body[:1000] + "... [truncated]"
+                    raw_body = b"".join(response_body_chunks)
+                    # 只对小响应记录内容（跳过包含 base64 图片的大响应）
+                    if len(raw_body) <= 5000:
+                        response_body = raw_body.decode("utf-8")
+                        if len(response_body) > 1000:
+                            response_body = response_body[:1000] + "... [truncated]"
+                    else:
+                        response_body = f"[large response, {len(raw_body)} bytes]"
                     # 重建响应
                     from starlette.responses import Response
                     response = Response(
-                        content=b"".join(response_body_chunks),
+                        content=raw_body,
                         status_code=response.status_code,
                         headers=dict(response.headers),
                         media_type=response.media_type,
@@ -188,6 +197,63 @@ async def logging_middleware(request: Request, call_next):
 
 # 注册 API 路由
 app.include_router(api_v1_router, prefix="/api")
+
+
+# 请求体验证异常处理（Pydantic 验证失败时触发）
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+    """处理请求体验证错误。
+
+    当前端发送的数据不符合 Pydantic Schema 时触发。
+    在日志中记录详细错误以便调试。
+    """
+    # 打印每个验证错误的详情
+    error_details = []
+    for error in exc.errors():
+        error_details.append({
+            "field": " -> ".join(str(loc) for loc in error.get("loc", [])),
+            "message": error.get("msg", ""),
+            "type": error.get("type", ""),
+        })
+
+    logger.warning(
+        "Request validation failed",
+        path=request.url.path,
+        method=request.method,
+        error_count=len(error_details),
+        errors=str(error_details),
+    )
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "code": 422,
+            "message": "请求数据验证失败",
+            "error": "VALIDATION_ERROR",
+            "details": error_details,
+        },
+    )
+
+
+# 数据库异常处理
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    """处理数据库异常。"""
+    logger.error(
+        "Database exception",
+        path=request.url.path,
+        error=str(exc),
+        exc_info=True,
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "code": 500,
+            "message": f"数据库错误: {str(exc)}",
+            "error": "DATABASE_ERROR",
+        },
+    )
 
 
 # 全局异常处理

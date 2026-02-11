@@ -6,7 +6,6 @@
 
 import axios from 'axios';
 import { createLogger } from '@/utils/logger';
-import { debugToken, isTokenExpired } from '@/utils/token';
 import type {
   Resume,
   ResumeBase,
@@ -27,10 +26,17 @@ const logger = createLogger('ResumeService');
 // API 基础 URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+/**
+ * 从 localStorage 或 sessionStorage 获取 token
+ */
+function getAccessToken(): string | null {
+  return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+}
+
 // 创建 axios 实例
 const resumeApi = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 30000, // 30秒超时，适应包含 base64 头像的大请求体
   headers: {
     'Content-Type': 'application/json',
   },
@@ -39,28 +45,16 @@ const resumeApi = axios.create({
 // 请求拦截器
 resumeApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (!token) {
       logger.error('No access token found');
       console.error('❌ 未找到 access_token，请先登录');
-      window.location.href = '/login';
-      return Promise.reject(new Error('未登录'));
-    }
-
-    // 检查 token 是否过期
-    if (isTokenExpired(token)) {
-      logger.error('Access token expired');
-      console.error('❌ Token 已过期，请重新登录');
-      debugToken();
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
-      return Promise.reject(new Error('Token 已过期'));
+      return Promise.reject(new Error('未登录，请先登录'));
     }
 
     config.headers.Authorization = `Bearer ${token}`;
     logger.debug(`Request: ${config.method?.toUpperCase()} ${config.url}`, {
-      hasToken: !!token,
+      hasToken: true,
     });
     return config;
   },
@@ -77,13 +71,44 @@ resumeApi.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+
+    // 详细记录错误信息
+    console.error('❗ 简历 API 错误:', {
+      status,
+      url: error.config?.url,
+      method: error.config?.method,
+      responseData,
+      message: error.message,
+    });
+
+    // 构建可读的错误信息
+    let errorMessage = '服务器错误';
+    if (responseData) {
+      if (responseData.message) {
+        errorMessage = responseData.message;
+      }
+      if (responseData.details && Array.isArray(responseData.details)) {
+        const fieldErrors = responseData.details
+          .map((d: { field?: string; message?: string }) => `${d.field}: ${d.message}`)
+          .join('; ');
+        errorMessage += ` (${fieldErrors})`;
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = '请求超时，请检查后端服务是否正常运行';
+    } else if (!error.response) {
+      errorMessage = '无法连接到服务器，请检查网络';
+    }
+
+    // 将错误信息附加到 error 对象上
+    error.displayMessage = errorMessage;
+
     // 处理 403 错误
-    if (error.response?.status === 403) {
+    if (status === 403) {
       console.error('403 Forbidden - 权限不足或 token 无效');
-      // 清除过期的 token
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      // 跳转到登录页
       window.location.href = '/login';
     }
     return Promise.reject(error);
