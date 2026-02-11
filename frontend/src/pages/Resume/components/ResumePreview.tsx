@@ -9,16 +9,10 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { X, ZoomIn, ZoomOut, Download } from 'lucide-react';
 import type { ResumeFormData } from '@/types/resume';
-import {
-  EDUCATION_LEVELS,
-  PROFICIENCY_LEVELS,
-  LANGUAGE_OPTIONS,
-  LANGUAGE_PROFICIENCY_OPTIONS,
-  SOCIAL_PLATFORM_OPTIONS,
-} from '@/types/resume';
 import ModernTemplate from './templates/ModernTemplate';
 import SmartPagination from './SmartPagination';
 import { exportToPrintablePDF } from '@/utils/pdf';
+import { useResumeHelpers } from '@/hooks/useResumeHelpers';
 import '../resume-print.css';
 
 interface ResumePreviewProps {
@@ -37,6 +31,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
   const [scale, setScale] = React.useState(1);
   const [isExporting, setIsExporting] = React.useState(false);
   const previewRef = React.useRef<HTMLDivElement>(null);
+  const helpers = useResumeHelpers();
 
   /**
    * 处理缩放
@@ -66,89 +61,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, onClose }) => {
   };
 
   /**
-   * 获取学历标签
-   *
-   * @param value - 学历值
-   * @returns 学历标签
-   */
-  const getEducationLabel = (value: string) => {
-    return EDUCATION_LEVELS.find((item) => item.value === value)?.label || value;
-  };
-
-  /**
-   * 获取熟练程度标签
-   *
-   * @param value - 熟练程度值
-   * @returns 熟练程度标签
-   */
-  const getProficiencyLabel = (value: string) => {
-    return PROFICIENCY_LEVELS.find((item) => item.value === value)?.label || value;
-  };
-
-  /**
-   * 获取语言标签
-   *
-   * @param value - 语言值
-   * @returns 语言标签
-   */
-  const getLanguageLabel = (value: string) => {
-    return LANGUAGE_OPTIONS.find((item) => item.value === value)?.label || value;
-  };
-
-  /**
-   * 获取语言熟练度标签
-   *
-   * @param value - 语言熟练度值
-   * @returns 语言熟练度标签
-   */
-  const getLanguageProficiencyLabel = (value: string) => {
-    return (
-      LANGUAGE_PROFICIENCY_OPTIONS.find((item) => item.value === value)?.label ||
-      value
-    );
-  };
-
-  /**
-   * 获取社交平台标签
-   *
-   * @param value - 社交平台值
-   * @returns 社交平台标签
-   */
-  const getSocialPlatformLabel = (value: string) => {
-    return (
-      SOCIAL_PLATFORM_OPTIONS.find((item) => item.value === value)?.label || value
-    );
-  };
-
-  /**
-   * 格式化日期
-   *
-   * @param dateStr - 日期字符串
-   * @returns 格式化后的日期
-   */
-  const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return '';
-    const [year, month] = dateStr.split('-');
-    return `${year}.${month}`;
-  };
-
-  /**
    * 渲染模板（memoize 以避免 SmartPagination 不必要的重新测量）
    */
   const renderedTemplate = React.useMemo(() => {
-    const templateProps = {
-      data,
-      getEducationLabel,
-      getProficiencyLabel,
-      getLanguageLabel,
-      getLanguageProficiencyLabel,
-      getSocialPlatformLabel,
-      formatDate,
-    };
-
-    return <ModernTemplate {...templateProps} />;
+    return <ModernTemplate data={data} {...helpers} />;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, helpers]);
 
   // 使用 createPortal 将预览渲染到 body 下，脱离 #root
   // 这样打印时隐藏 #root 不会影响预览内容

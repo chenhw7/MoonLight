@@ -23,6 +23,7 @@ import WorkExperienceForm from './components/forms/WorkExperienceForm';
 import ProjectForm from './components/forms/ProjectForm';
 import SkillsForm from './components/forms/SkillsForm';
 import ResumePreview from './components/ResumePreview';
+import RightSidebarPreview from './components/RightSidebarPreview';
 
 const logger = createLogger('ResumeCreate');
 
@@ -342,28 +343,7 @@ const ResumeCreate: React.FC = () => {
               {/* 右侧预览区 - 桌面端显示 */}
               <div className="hidden lg:block">
                 <div className="sticky top-24">
-                  <Card className="overflow-hidden">
-                    <div className="p-4 border-b bg-muted/50">
-                      <h3 className="font-medium">实时预览</h3>
-                    </div>
-                    <div
-                      className="bg-gray-50 overflow-auto"
-                      style={{ maxHeight: 'calc(100vh - 200px)' }}
-                    >
-                      <div
-                        className="p-6 origin-top bg-white"
-                        style={{
-                          width: '210mm',
-                          minHeight: '297mm',
-                          transform: 'scale(0.4)',
-                          transformOrigin: 'top left',
-                        }}
-                      >
-                        {/* 简化的预览内容 */}
-                        <ResumePreviewContent data={formData} />
-                      </div>
-                    </div>
-                  </Card>
+                  <RightSidebarPreview data={formData} />
                 </div>
               </div>
             </div>
@@ -379,134 +359,6 @@ const ResumeCreate: React.FC = () => {
   );
 };
 
-/**
- * 简化的预览内容组件
- */
-const ResumePreviewContent: React.FC<{ data: ResumeFormData }> = ({ data }) => {
-  return (
-    <div className="text-sm text-gray-900">
-      <header className="border-b-2 border-gray-800 pb-4 mb-6">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">{data.full_name || '姓名'}</h1>
-            <div className="text-gray-600">
-              {data.phone && <span className="mr-4">{data.phone}</span>}
-              {data.email && <span className="mr-4">{data.email}</span>}
-              {data.current_city && <span>{data.current_city}</span>}
-            </div>
-          </div>
 
-          {/* 头像显示 - 根据比例显示不同尺寸 */}
-          {data.avatar && (
-            <div className="ml-4 flex-shrink-0">
-              <img
-                src={data.avatar}
-                alt="头像"
-                className={`
-                  object-cover rounded border border-gray-300
-                  ${data.avatar_ratio === '1' ? 'w-20 h-20' : 'w-20 h-28'}
-                `}
-              />
-            </div>
-          )}
-        </div>
-      </header>
-
-      {data.educations.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3 text-gray-900">
-            教育经历
-          </h2>
-          {data.educations.slice(0, 1).map((edu, index) => (
-            <div key={index}>
-              <div className="flex justify-between">
-                <span className="font-semibold text-gray-800">{edu.school_name}</span>
-                <span className="text-gray-500 text-xs">
-                  {edu.start_date} - {edu.end_date || '至今'}
-                </span>
-              </div>
-              <div className="text-gray-600">
-                {edu.major} · {edu.degree}
-              </div>
-            </div>
-          ))}
-          {data.educations.length > 1 && (
-            <div className="text-gray-500 text-xs mt-1">
-              还有 {data.educations.length - 1} 条教育经历...
-            </div>
-          )}
-        </section>
-      )}
-
-      {data.work_experiences.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3 text-gray-900">
-            {data.resume_type === 'campus' ? '实习经历' : '工作经历'}
-          </h2>
-          {data.work_experiences.slice(0, 1).map((work, index) => (
-            <div key={index}>
-              <div className="flex justify-between">
-                <span className="font-semibold text-gray-800">{work.company_name}</span>
-                <span className="text-gray-500 text-xs">
-                  {work.start_date} - {work.end_date || '至今'}
-                </span>
-              </div>
-              <div className="text-gray-600">{work.position}</div>
-            </div>
-          ))}
-          {data.work_experiences.length > 1 && (
-            <div className="text-gray-500 text-xs mt-1">
-              还有 {data.work_experiences.length - 1} 条工作经历...
-            </div>
-          )}
-        </section>
-      )}
-
-      {data.projects.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3 text-gray-900">
-            项目经历
-          </h2>
-          {data.projects.slice(0, 1).map((project, index) => (
-            <div key={index}>
-              <div className="flex justify-between">
-                <span className="font-semibold text-gray-800">{project.project_name}</span>
-                <span className="text-gray-500 text-xs">
-                  {project.start_date} - {project.end_date || '至今'}
-                </span>
-              </div>
-              <div className="text-gray-600">{project.role}</div>
-            </div>
-          ))}
-          {data.projects.length > 1 && (
-            <div className="text-gray-500 text-xs mt-1">
-              还有 {data.projects.length - 1} 条项目经历...
-            </div>
-          )}
-        </section>
-      )}
-
-      {data.skills.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-lg font-bold border-b border-gray-300 pb-1 mb-3 text-gray-900">
-            技能特长
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {data.skills.slice(0, 5).map((skill, index) => (
-              <span key={index} className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-800">
-                {skill.skill_name}
-              </span>
-            ))}
-            {data.skills.length > 5 && (
-              <span className="text-gray-500 text-xs">
-                +{data.skills.length - 5}
-              </span>
-            )}
-          </div>
-        </section>
-      )}
-    </div>
-  );
-};
 
 export default ResumeCreate;
