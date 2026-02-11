@@ -244,6 +244,11 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   </span>
                 )}
               </div>
+              {edu.courses && (
+                <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px' }}>
+                  <span style={{ fontWeight: 'bold' }}>主修课程：</span>{edu.courses}
+                </div>
+              )}
             </div>
           ))}
         </section>
@@ -393,12 +398,19 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           {renderSectionTitle('获奖经历')}
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.awards.map((award, index) => (
-              <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6' }}>
-                {award.award_name}
-                {award.award_date && (
-                  <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                    ({formatChineseDate(award.award_date)})
-                  </span>
+              <li key={index} style={{ marginBottom: '6px', lineHeight: '1.6' }}>
+                <div>
+                  <span style={{ fontWeight: 'bold' }}>{award.award_name}</span>
+                  {award.award_date && (
+                    <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
+                      ({formatChineseDate(award.award_date)})
+                    </span>
+                  )}
+                </div>
+                {award.description && (
+                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
+                    {award.description}
+                  </div>
                 )}
               </li>
             ))}
@@ -412,12 +424,19 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           {renderSectionTitle('作品展示')}
           <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
             {data.portfolios.map((portfolio, index) => (
-              <li key={index} style={{ marginBottom: '3px', lineHeight: '1.6', wordWrap: 'break-word', wordBreak: 'break-all' }}>
-                {portfolio.work_name}
-                {portfolio.work_link && (
-                  <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                    {portfolio.work_link}
-                  </span>
+              <li key={index} style={{ marginBottom: '6px', lineHeight: '1.6', wordWrap: 'break-word', wordBreak: 'break-all' }}>
+                <div>
+                  <span style={{ fontWeight: 'bold' }}>{portfolio.work_name}</span>
+                  {portfolio.work_link && (
+                    <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
+                      {portfolio.work_link}
+                    </span>
+                  )}
+                </div>
+                {portfolio.description && (
+                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
+                    {portfolio.description}
+                  </div>
                 )}
               </li>
             ))}
