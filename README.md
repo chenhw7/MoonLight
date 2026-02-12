@@ -82,9 +82,28 @@ cd moonlight
 docker-compose up -d postgres redis
 ```
 
-### 3. 配置后端
+### 3. 配置与启动（推荐）
 
-#### 3.1 创建虚拟环境
+我们在项目根目录提供了便捷的初始化脚本，可以一键完成环境配置。
+
+#### Linux / WSL 环境
+
+```bash
+# 1. 赋予脚本执行权限
+chmod +x setup.sh start-dev.sh
+
+# 2. 初始化环境（自动安装前后端依赖）
+./setup.sh
+
+# 3. 启动开发服务器
+./start-dev.sh
+```
+
+### 4. 手动配置（备选）
+
+如果不使用脚本，可以按照以下步骤手动配置。
+
+#### 4.1 启动基础设施
 
 ```bash
 cd backend
