@@ -153,6 +153,15 @@ class ResumeService:
             avatar_ratio=data.avatar_ratio,
             current_city=data.current_city,
             self_evaluation=data.self_evaluation,
+            # 求职意向
+            target_position=data.target_position,
+            target_city=data.target_city,
+            start_work_date=data.start_work_date,
+            # 内部管理字段
+            salary_expectation=data.salary_expectation,
+            application_status=data.application_status,
+            target_companies=data.target_companies,
+            private_notes=data.private_notes,
         )
 
         self.db.add(resume)
@@ -186,6 +195,10 @@ class ResumeService:
         base_fields = [
             "resume_type", "title", "full_name", "phone", "email",
             "avatar", "avatar_ratio", "current_city", "self_evaluation",
+            # 求职意向
+            "target_position", "target_city", "start_work_date",
+            # 内部管理字段
+            "salary_expectation", "application_status", "target_companies", "private_notes",
         ]
         update_data = data.model_dump(exclude_unset=True)
         for field in base_fields:
@@ -217,6 +230,8 @@ class ResumeService:
                 gpa=edu.gpa,
                 courses=edu.courses,
                 honors=edu.honors,
+                ranking=edu.ranking,
+                is_current=edu.is_current,
                 sort_order=getattr(edu, 'sort_order', i),
             ))
 
@@ -230,9 +245,13 @@ class ResumeService:
                 exp_type=exp_type,
                 company_name=exp.company_name,
                 position=exp.position or "",
+                department=exp.department,
                 start_date=exp.start_date or date.today(),
                 end_date=exp.end_date,
                 description=exp.description or "",
+                achievements=exp.achievements,
+                tech_stack=exp.tech_stack,
+                is_current=exp.is_current,
                 sort_order=getattr(exp, 'sort_order', i),
             ))
 
@@ -244,10 +263,13 @@ class ResumeService:
                 resume_id=resume_id,
                 project_name=proj.project_name,
                 role=proj.role or "",
+                role_detail=proj.role_detail,
                 start_date=proj.start_date or date.today(),
                 end_date=proj.end_date,
                 project_link=proj.project_link,
                 description=proj.description or "",
+                tech_stack=proj.tech_stack,
+                is_current=proj.is_current,
                 sort_order=getattr(proj, 'sort_order', i),
             ))
 
