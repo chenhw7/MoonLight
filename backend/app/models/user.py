@@ -14,6 +14,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.resume import Resume
+    from app.models.interview import InterviewSession
 
 
 class User(Base):
@@ -67,6 +68,9 @@ class User(Base):
 
     # 关系
     resumes: Mapped[List["Resume"]] = relationship("Resume", back_populates="user")
+    interview_sessions: Mapped[List["InterviewSession"]] = relationship(
+        "InterviewSession", back_populates="user"
+    )
 
     def __repr__(self) -> str:
         """返回用户对象的字符串表示。"""

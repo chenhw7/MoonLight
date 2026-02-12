@@ -96,7 +96,7 @@ else
     # 等待后端就绪
     echo -e "${YELLOW}   ⏳ 等待后端就绪...${NC}"
     for i in {1..10}; do
-        sleep 2
+        sleep 5
         if curl -s "http://localhost:8000/health" > /dev/null 2>&1; then
             echo -e "${GREEN}   ✅ 后端已就绪 (http://localhost:8000)${NC}"
             break

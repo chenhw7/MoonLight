@@ -137,6 +137,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
     const contacts = [];
     if (data.phone) contacts.push(data.phone);
     if (data.email) contacts.push(data.email);
+    if (data.current_city) contacts.push(data.current_city);
 
     if (contacts.length === 0) return null;
 
