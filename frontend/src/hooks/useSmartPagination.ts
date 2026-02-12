@@ -76,6 +76,10 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
         
         let currentPartChildren: string[] = [];
         let currentPartHeight = mt + wrapperOverhead; // 初始高度包含 margin-top 和容器自身
+        
+        // 记录标题，用于分页时在下一页重现标题
+        let headerHTML = '';
+        let headerHeight = 0;
 
         for (let i = 0; i < children.length; i++) {
           const child = children[i];
@@ -84,6 +88,12 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
           const childMt = parseFloat(childCs.marginTop) || 0;
           const childMb = parseFloat(childCs.marginBottom) || 0;
           const childTotalH = childH + childMt + childMb;
+
+          // 记录第一个元素是否为标题
+          if (i === 0 && /^H[1-6]$/i.test(child.tagName)) {
+            headerHTML = child.outerHTML;
+            headerHeight = childTotalH;
+          }
 
           // 检查当前子元素是否放入当前页
           if (usedHeight + currentPartHeight + childTotalH <= pageHeightPx) {
@@ -134,6 +144,13 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
             usedHeight = 0;
             currentPartChildren = [];
             currentPartHeight = wrapperOverhead; // 新页部分不需要 block 的 margin-top
+            
+            // 如果存在标题，且当前不是处理孤儿标题的情况，将标题复制到新页
+            if (headerHTML && !onlyHasTitle) {
+              currentPartChildren.push(headerHTML);
+              currentPartHeight += headerHeight;
+            }
+
             i--; // 回退，重新处理当前子元素
           }
         }
