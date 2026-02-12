@@ -79,16 +79,28 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = ({
           />
         </div>
 
-        {/* 职位名称 */}
-        <div className="space-y-2">
-          <Label>职位名称</Label>
-          <Input
-            placeholder="请输入担任职位"
-            value={experience.position}
-            onChange={(e) =>
-              handleUpdateWorkExperience(index, { position: e.target.value })
-            }
-          />
+        {/* 职位名称和部门 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>职位名称</Label>
+            <Input
+              placeholder="请输入担任职位"
+              value={experience.position}
+              onChange={(e) =>
+                handleUpdateWorkExperience(index, { position: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>所属部门</Label>
+            <Input
+              placeholder="如：研发部、平台组"
+              value={experience.department || ''}
+              onChange={(e) =>
+                handleUpdateWorkExperience(index, { department: e.target.value })
+              }
+            />
+          </div>
         </div>
 
         {/* 起止时间 */}
@@ -142,26 +154,30 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = ({
           </div>
         </div>
 
-        {/* 实习/全职标识 - 仅校招显示 */}
-        {resumeMode === 'campus' && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={`internship-${index}`}
-              checked={experience.is_internship}
-              onCheckedChange={(checked) =>
-                handleUpdateWorkExperience(index, {
-                  is_internship: checked as boolean,
-                })
-              }
-            />
-            <label
-              htmlFor={`internship-${index}`}
-              className="text-sm text-muted-foreground cursor-pointer"
-            >
-              这是实习经历
-            </label>
-          </div>
-        )}
+        {/* 工作描述 */}
+        <div className="space-y-2">
+          <Label>技术栈</Label>
+          <Input
+            placeholder="如：React, TypeScript, Node.js"
+            value={experience.tech_stack || ''}
+            onChange={(e) =>
+              handleUpdateWorkExperience(index, { tech_stack: e.target.value })
+            }
+          />
+        </div>
+
+        {/* 主要成就 */}
+        <div className="space-y-2">
+          <Label>主要成就</Label>
+          <Textarea
+            placeholder="列举核心业绩，可量化结果"
+            rows={3}
+            value={experience.achievements || ''}
+            onChange={(e) =>
+              handleUpdateWorkExperience(index, { achievements: e.target.value })
+            }
+          />
+        </div>
 
         {/* 工作描述 */}
         <div className="space-y-2">
