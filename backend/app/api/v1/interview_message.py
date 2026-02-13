@@ -7,7 +7,9 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.ai_client import AIClient, AIClientFactory
 from app.core.database import get_db
@@ -109,10 +111,19 @@ async def send_message(
     messages = await InterviewMessageService.list_by_session(db, session_id)
 
     # 获取简历
-    from sqlalchemy import select
-
     result = await db.execute(
-        select(Resume).where(Resume.id == session.resume_id)
+        select(Resume)
+        .where(Resume.id == session.resume_id)
+        .options(
+            selectinload(Resume.educations),
+            selectinload(Resume.work_experiences),
+            selectinload(Resume.projects),
+            selectinload(Resume.skills),
+            selectinload(Resume.languages),
+            selectinload(Resume.awards),
+            selectinload(Resume.portfolios),
+            selectinload(Resume.social_links),
+        )
     )
     resume = result.scalar_one_or_none()
 
@@ -227,10 +238,19 @@ async def send_message_stream(
     messages = await InterviewMessageService.list_by_session(db, session_id)
 
     # 获取简历
-    from sqlalchemy import select
-
     result = await db.execute(
-        select(Resume).where(Resume.id == session.resume_id)
+        select(Resume)
+        .where(Resume.id == session.resume_id)
+        .options(
+            selectinload(Resume.educations),
+            selectinload(Resume.work_experiences),
+            selectinload(Resume.projects),
+            selectinload(Resume.skills),
+            selectinload(Resume.languages),
+            selectinload(Resume.awards),
+            selectinload(Resume.portfolios),
+            selectinload(Resume.social_links),
+        )
     )
     resume = result.scalar_one_or_none()
 

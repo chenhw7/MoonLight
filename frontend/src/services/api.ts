@@ -14,7 +14,7 @@ const logger = createLogger('API');
 // 符合 RESTful API 版本化规范
 const apiConfig: AxiosRequestConfig = {
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

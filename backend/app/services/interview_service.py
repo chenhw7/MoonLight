@@ -8,6 +8,7 @@ from typing import Optional
 
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.ai_client import AIClient, AIClientError
 from app.core.logging import get_logger
@@ -48,6 +49,7 @@ class InterviewSessionService:
         model_config = {
             "provider": ai_config.provider,
             "base_url": ai_config.base_url,
+            "api_key": ai_config.api_key,
             "chat_model": ai_config.chat_model,
             "reasoning_model": ai_config.reasoning_model,
             "vision_model": ai_config.vision_model,
@@ -102,8 +104,23 @@ class InterviewSessionService:
         Returns:
             面试会话，如果不存在返回 None
         """
+        from app.models.resume import Resume
+
         result = await db.execute(
-            select(InterviewSession).where(InterviewSession.id == session_id)
+            select(InterviewSession)
+            .where(InterviewSession.id == session_id)
+            .options(
+                selectinload(InterviewSession.resume).selectinload(Resume.educations),
+                selectinload(InterviewSession.resume).selectinload(Resume.work_experiences),
+                selectinload(InterviewSession.resume).selectinload(Resume.projects),
+                selectinload(InterviewSession.resume).selectinload(Resume.skills),
+                selectinload(InterviewSession.resume).selectinload(Resume.languages),
+                selectinload(InterviewSession.resume).selectinload(Resume.awards),
+                selectinload(InterviewSession.resume).selectinload(Resume.portfolios),
+                selectinload(InterviewSession.resume).selectinload(Resume.social_links),
+                selectinload(InterviewSession.messages),
+                selectinload(InterviewSession.evaluation),
+            )
         )
         return result.scalar_one_or_none()
 
@@ -120,9 +137,23 @@ class InterviewSessionService:
         Returns:
             面试会话，如果不存在返回 None
         """
+        from app.models.resume import Resume
+
         result = await db.execute(
             select(InterviewSession)
             .where(InterviewSession.id == session_id)
+            .options(
+                selectinload(InterviewSession.resume).selectinload(Resume.educations),
+                selectinload(InterviewSession.resume).selectinload(Resume.work_experiences),
+                selectinload(InterviewSession.resume).selectinload(Resume.projects),
+                selectinload(InterviewSession.resume).selectinload(Resume.skills),
+                selectinload(InterviewSession.resume).selectinload(Resume.languages),
+                selectinload(InterviewSession.resume).selectinload(Resume.awards),
+                selectinload(InterviewSession.resume).selectinload(Resume.portfolios),
+                selectinload(InterviewSession.resume).selectinload(Resume.social_links),
+                selectinload(InterviewSession.messages),
+                selectinload(InterviewSession.evaluation),
+            )
             .order_by(InterviewMessage.id)
         )
         return result.scalar_one_or_none()
@@ -498,13 +529,13 @@ class PromptService:
         if resume.projects:
             parts.append("\n项目经历:")
             for proj in resume.projects:
-                parts.append(f"- {proj.name}: {proj.description}")
+                parts.append(f"- {proj.project_name}: {proj.description}")
 
         # 技能
         if resume.skills:
             parts.append("\n技能:")
             for skill in resume.skills:
-                parts.append(f"- {skill.name} ({skill.level})")
+                parts.append(f"- {skill.skill_name} ({skill.proficiency})")
 
         return "\n".join(parts)
 
