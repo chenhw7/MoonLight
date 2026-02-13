@@ -79,10 +79,10 @@ export interface DimensionChangeItem {
  * 面试统计数据
  */
 export interface InterviewStats {
-  dimensionScores: DimensionScores | null;
-  recentInterviews: RecentInterviewItem[];
-  scoreTrend: ScoreTrendItem[];
-  dimensionChanges: DimensionChangeItem[];
+  dimension_scores: DimensionScores | null;
+  recent_interviews: RecentInterviewItem[];
+  score_trend: ScoreTrendItem[];
+  dimension_changes: DimensionChangeItem[];
   insight: string | null;
 }
 

@@ -76,14 +76,21 @@ export function Dashboard() {
     return null;
   }
 
-  const { stats, recent_resumes = [], interview_stats } = data;
+  const stats = data?.stats ?? { resume_count: 0, interview_count: 0, average_score: null, streak_days: 0 };
+  const recent_resumes = data?.recent_resumes ?? [];
   
-  // 确保 interview_stats 有默认值
-  const safeInterviewStats = interview_stats || {
-    dimensionScores: null,
-    recentInterviews: [],
-    scoreTrend: [],
-    dimensionChanges: [],
+  // 确保 interview_stats 有完整默认值（处理 undefined 和 null 情况）
+  const safeInterviewStats = data?.interview_stats ? {
+    dimension_scores: data.interview_stats.dimension_scores ?? null,
+    recent_interviews: data.interview_stats.recent_interviews ?? [],
+    score_trend: data.interview_stats.score_trend ?? [],
+    dimension_changes: data.interview_stats.dimension_changes ?? [],
+    insight: data.interview_stats.insight ?? null,
+  } : {
+    dimension_scores: null,
+    recent_interviews: [],
+    score_trend: [],
+    dimension_changes: [],
     insight: null,
   };
 
@@ -222,14 +229,16 @@ export function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {safeInterviewStats.dimensionScores ? (
+            {safeInterviewStats.recent_interviews.length > 0 ? (
               <div className="space-y-4">
                 {/* 雷达图 */}
-                <RadarChartComponent data={safeInterviewStats.dimensionScores} height={200} />
+                {safeInterviewStats.dimension_scores && (
+                  <RadarChartComponent data={safeInterviewStats.dimension_scores} height={200} />
+                )}
 
                 {/* 最近面试列表 */}
                 <InterviewList
-                  data={safeInterviewStats.recentInterviews}
+                  data={safeInterviewStats.recent_interviews}
                   onItemClick={handleInterviewClick}
                 />
 
@@ -264,13 +273,13 @@ export function Dashboard() {
           <CardTitle className="text-lg">📈 成长趋势</CardTitle>
         </CardHeader>
         <CardContent>
-          {safeInterviewStats.scoreTrend.length >= 3 ? (
+          {safeInterviewStats.score_trend.length >= 3 ? (
             <div className="space-y-6">
               {/* 分数趋势图 */}
-              <ScoreTrend data={safeInterviewStats.scoreTrend} height={180} />
+              <ScoreTrend data={safeInterviewStats.score_trend} height={180} />
 
               {/* 维度变化 */}
-              <DimensionChange data={safeInterviewStats.dimensionChanges} />
+              <DimensionChange data={safeInterviewStats.dimension_changes} />
 
               {/* 洞察文字 */}
               {safeInterviewStats.insight && (
