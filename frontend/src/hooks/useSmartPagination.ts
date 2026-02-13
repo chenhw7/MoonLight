@@ -116,8 +116,9 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
               }
               
               // 重置状态，重新处理当前子元素 (及之前的标题)
+              // 注意：for 循环会自动 i++，所以设置为 -1 才能从第一个元素重新开始
               if (onlyHasTitle) {
-                 i -= currentPartChildren.length; 
+                 i = -1;
               } else {
                  i--;
               }
