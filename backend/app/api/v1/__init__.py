@@ -7,6 +7,7 @@ from fastapi import APIRouter
 
 from app.api.v1.ai_config import router as ai_config_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.interview import router as interview_router
 from app.api.v1.interview_evaluation import router as interview_evaluation_router
 from app.api.v1.interview_message import router as interview_message_router
@@ -21,5 +22,6 @@ router.include_router(ai_config_router)
 router.include_router(interview_router)
 router.include_router(interview_message_router)
 router.include_router(interview_evaluation_router)
+router.include_router(dashboard_router)
 
 __all__ = ["router"]
