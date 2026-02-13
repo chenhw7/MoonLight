@@ -19,12 +19,15 @@ import {
   Bot,
   User,
   Clock,
+  AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +42,7 @@ import {
   getInterviewSession,
   getInterviewMessages,
   getInterviewProgress,
-  sendMessage,
+  sendMessageStream,
   completeInterviewSession,
   abortInterviewSession,
   nextRound,
@@ -65,8 +68,14 @@ export function InterviewChat() {
   const [progress, setProgress] = useState<InterviewProgress | null>(null);
   const [inputMessage, setInputMessage] = useState('');
   const [sending, setSending] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_streamingContent, _setStreamingContent] = useState('');
+  
+  // 流式输出状态
+  const [streamingContent, setStreamingContent] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  
+  // 轮次切换提示
+  const [showTransitionAlert, setShowTransitionAlert] = useState(false);
+  const [transitionMessage, setTransitionMessage] = useState('');
 
   // 对话框状态
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
@@ -74,9 +83,10 @@ export function InterviewChat() {
 
   // 滚动引用
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   // 加载面试数据
-  const loadInterviewData = async () => {
+  const loadInterviewData = useCallback(async () => {
     if (!sessionId) return;
 
     try {
@@ -95,28 +105,39 @@ export function InterviewChat() {
       alert('加载面试数据失败');
       navigate('/interview/config');
     }
-  };
+  }, [sessionId, navigate]);
 
   useEffect(() => {
     loadInterviewData().finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [loadInterviewData]);
 
   // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, _streamingContent]);
+  }, [messages, streamingContent]);
 
-  // 发送消息 - 使用 useCallback 优化
+  // 清理 EventSource
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  // 发送消息（流式）
   const handleSendMessage = useCallback(async () => {
-    if (!inputMessage.trim() || !sessionId || sending) return;
+    if (!inputMessage.trim() || !sessionId || sending || isStreaming) return;
 
     const content = inputMessage.trim();
     setInputMessage('');
     setSending(true);
+    setStreamingContent('');
+    setIsStreaming(true);
 
     try {
       const id = parseInt(sessionId);
+      const currentRound = session?.current_round || 'qa';
 
       // 乐观更新：先添加用户消息
       const tempUserMessage: InterviewMessageResponse = {
@@ -124,38 +145,100 @@ export function InterviewChat() {
         session_id: id,
         role: 'user',
         content,
-        round: session?.current_round || 'qa',
+        round: currentRound,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, tempUserMessage]);
 
-      // 发送消息
-      const response = await sendMessage(id, {
+      // 关闭之前的 EventSource
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+
+      // 创建新的 EventSource
+      const eventSource = sendMessageStream(id, {
         role: 'user',
         content,
-        round: session?.current_round || 'qa',
+        round: currentRound,
       });
+      eventSourceRef.current = eventSource;
 
-      // 更新消息列表
-      setMessages((prev) => [...prev, response]);
+      let fullContent = '';
 
-      // 刷新进度
-      const progressData = await getInterviewProgress(id);
-      setProgress(progressData);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          switch (data.type) {
+            case 'start':
+              logger.info('Stream started');
+              break;
+              
+            case 'chunk':
+              fullContent += data.content;
+              setStreamingContent(fullContent);
+              break;
+              
+            case 'end':
+              // 流式输出结束
+              setIsStreaming(false);
+              setStreamingContent('');
+              eventSource.close();
+              
+              // 添加 AI 消息到列表
+              const aiMessage: InterviewMessageResponse = {
+                id: data.message_id || Date.now(),
+                session_id: id,
+                role: 'ai',
+                content: fullContent,
+                round: currentRound,
+                meta_info: data.transition ? { triggered_transition: data.next_round } : undefined,
+                created_at: new Date().toISOString(),
+              };
+              setMessages((prev) => [...prev, aiMessage]);
+              
+              // 如果触发了轮次切换
+              if (data.transition) {
+                setTransitionMessage(`已自动切换到${ROUND_DISPLAY_NAMES[data.next_round as keyof typeof ROUND_DISPLAY_NAMES] || data.next_round}环节`);
+                setShowTransitionAlert(true);
+                setTimeout(() => setShowTransitionAlert(false), 5000);
+                loadInterviewData();
+              } else {
+                // 刷新进度
+                getInterviewProgress(id).then(setProgress);
+              }
+              break;
+              
+            case 'error':
+              logger.error('Stream error', data);
+              setIsStreaming(false);
+              setStreamingContent('');
+              eventSource.close();
+              alert(`流式输出错误: ${data.message}`);
+              break;
+          }
+        } catch (error) {
+          logger.error('Failed to parse SSE data', { error, data: event.data });
+        }
+      };
 
-      // 检查是否切换了轮次
-      if (response.meta_info?.triggered_transition) {
-        await loadInterviewData();
-      }
+      eventSource.onerror = (error) => {
+        logger.error('EventSource error', { error });
+        setIsStreaming(false);
+        setStreamingContent('');
+        eventSource.close();
+      };
+
     } catch (error) {
       logger.error('Failed to send message', { error });
       alert('发送消息失败');
+      setIsStreaming(false);
     } finally {
       setSending(false);
     }
-  }, [inputMessage, sessionId, sending, session?.current_round]);
+  }, [inputMessage, sessionId, sending, isStreaming, session?.current_round, loadInterviewData]);
 
-  // 完成面试 - 使用 useCallback 优化
+  // 完成面试
   const handleComplete = useCallback(async () => {
     if (!sessionId) return;
 
@@ -169,7 +252,7 @@ export function InterviewChat() {
     }
   }, [sessionId, navigate]);
 
-  // 放弃面试 - 使用 useCallback 优化
+  // 放弃面试
   const handleAbort = useCallback(async () => {
     if (!sessionId) return;
 
@@ -183,13 +266,18 @@ export function InterviewChat() {
     }
   }, [sessionId, navigate]);
 
-  // 切换到下一轮 - 使用 useCallback 优化
+  // 切换到下一轮
   const handleNextRound = useCallback(async () => {
     if (!sessionId) return;
 
     try {
       const id = parseInt(sessionId);
-      await nextRound(id);
+      const result = await nextRound(id);
+      
+      setTransitionMessage(`已切换到${result.current_round_display}环节`);
+      setShowTransitionAlert(true);
+      setTimeout(() => setShowTransitionAlert(false), 5000);
+      
       await loadInterviewData();
     } catch (error) {
       logger.error('Failed to next round', { error });
@@ -197,13 +285,30 @@ export function InterviewChat() {
     }
   }, [sessionId, loadInterviewData]);
 
-  // 处理键盘事件 - 使用 useCallback 优化
+  // 处理键盘事件
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   }, [handleSendMessage]);
+
+  // 获取进度提示文本
+  const getProgressHint = () => {
+    if (!progress) return '';
+
+    const { user_messages, min_messages, current_round_display } = progress;
+
+    if (progress.can_transition) {
+      return `已完成${current_round_display}环节，可以进入下一轮`;
+    }
+
+    if (min_messages > 0) {
+      return `当前${current_round_display}环节，至少还需要 ${min_messages - user_messages} 轮对话才能进入下一轮`;
+    }
+    
+    return `当前${current_round_display}环节`;
+  };
 
   if (loading) {
     return (
@@ -252,31 +357,42 @@ export function InterviewChat() {
               <h1 className="font-semibold">
                 {session.company_name} - {session.position_name}
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {session.recruitment_type === 'campus' ? '校招' : '社招'} ·
-                {ROUND_DISPLAY_NAMES[session.current_round]}
-              </p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{session.recruitment_type === 'campus' ? '校招' : '社招'}</span>
+                <span>·</span>
+                <Badge variant="secondary" className="text-xs">
+                  {ROUND_DISPLAY_NAMES[session.current_round]}
+                </Badge>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             {/* 进度 */}
             {progress && (
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>
-                  {progress.round_index} / {progress.total_rounds} 轮
-                </span>
-                <Progress value={progress.progress} className="w-20" />
+              <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground mr-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>
+                    {progress.round_index} / {progress.total_rounds} 轮
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 w-24">
+                  <Progress value={progress.progress} className="h-2" />
+                  <span className="text-xs text-center">
+                    {progress.user_messages}/{progress.max_messages > 0 ? progress.max_messages : '∞'}
+                  </span>
+                </div>
               </div>
             )}
 
             {/* 控制按钮 */}
             <Button
-              variant="outline"
+              variant={progress?.can_transition ? "default" : "outline"}
               size="sm"
               onClick={handleNextRound}
-              disabled={!progress?.can_transition}
+              disabled={!progress?.can_transition || isStreaming}
+              className={progress?.can_transition ? "animate-pulse" : ""}
             >
               <SkipForward className="w-4 h-4 mr-1" />
               下一轮
@@ -286,6 +402,7 @@ export function InterviewChat() {
               variant="outline"
               size="sm"
               onClick={() => setShowCompleteDialog(true)}
+              disabled={isStreaming}
             >
               <CheckCircle className="w-4 h-4 mr-1" />
               完成
@@ -295,6 +412,7 @@ export function InterviewChat() {
               variant="destructive"
               size="sm"
               onClick={() => setShowAbortDialog(true)}
+              disabled={isStreaming}
             >
               <Flag className="w-4 h-4 mr-1" />
               放弃
@@ -302,6 +420,38 @@ export function InterviewChat() {
           </div>
         </div>
       </header>
+
+      {/* 进度提示栏 */}
+      {progress && (
+        <div className="bg-muted/50 border-b px-4 py-2">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <AlertCircle className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">{getProgressHint()}</span>
+            </div>
+            {progress.can_transition && (
+              <Badge variant="default" className="text-xs animate-pulse">
+                <Sparkles className="w-3 h-3 mr-1" />
+                可以进入下一轮
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 轮次切换提示 */}
+      {showTransitionAlert && (
+        <div className="bg-primary/10 border-b border-primary/20 px-4 py-2">
+          <div className="max-w-4xl mx-auto">
+            <Alert className="border-primary/50 bg-primary/5">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-primary font-medium">
+                {transitionMessage}
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      )}
 
       {/* 消息区域 */}
       <ScrollArea className="flex-1 p-4">
@@ -342,24 +492,32 @@ export function InterviewChat() {
                     {new Date(message.created_at).toLocaleTimeString()}
                   </span>
                   {message.meta_info && (message.meta_info as { triggered_transition?: boolean }).triggered_transition && (
-                    <Badge variant="secondary" className="text-xs">
-                        轮次切换
+                    <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      轮次切换
                     </Badge>
-                    )}
+                  )}
                 </div>
               </div>
             </div>
           ))}
 
           {/* 流式消息 */}
-          {_streamingContent && (
+          {isStreaming && streamingContent && (
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                 <Bot className="w-4 h-4" />
               </div>
               <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                <p className="whitespace-pre-wrap">{_streamingContent}</p>
-                <span className="text-xs opacity-70">输入中...</span>
+                <p className="whitespace-pre-wrap">{streamingContent}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-xs opacity-70">输入中</span>
+                  <span className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -375,15 +533,15 @@ export function InterviewChat() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入消息..."
-            disabled={sending}
+            placeholder={isStreaming ? "AI 正在回答..." : "输入消息..."}
+            disabled={sending || isStreaming}
             className="flex-1"
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || sending}
+            disabled={!inputMessage.trim() || sending || isStreaming}
           >
-            {sending ? (
+            {sending || isStreaming ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Send className="w-4 h-4" />

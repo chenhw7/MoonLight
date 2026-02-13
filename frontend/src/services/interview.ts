@@ -112,7 +112,7 @@ export const getInterviewMessages = async (
 };
 
 /**
- * 发送消息
+ * 发送消息（非流式）
  */
 export const sendMessage = async (
   sessionId: number,
@@ -127,24 +127,94 @@ export const sendMessage = async (
 
 /**
  * 发送消息（流式）
+ * 使用 fetch API 支持 POST 请求的 SSE
  */
 export const sendMessageStream = (
   sessionId: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _data: InterviewMessageCreate
+  data: InterviewMessageCreate
 ): EventSource => {
-  // const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  // 由于需要使用 POST 请求发送消息内容，我们创建一个自定义的 EventSource-like 对象
   const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-  const url = new URL(`${baseURL}/interviews/${sessionId}/messages/stream`);
+  const url = `${baseURL}/interviews/${sessionId}/messages/stream`;
   
-  // 由于 SSE 不支持设置自定义 headers，我们需要通过 URL 参数传递 token
-  // 或者使用 POST 请求，这里使用 EventSource
-  const eventSource = new EventSource(url.toString(), {
+  // 创建一个模拟的 EventSource 对象
+  const mockEventSource = {
+    onmessage: null as ((event: MessageEvent) => void) | null,
+    onerror: null as ((error: Event) => void) | null,
+    onopen: null as ((event: Event) => void) | null,
+    close: () => {},
+    readyState: 0,
+    url: url,
     withCredentials: true,
+  } as EventSource;
+
+  // 使用 fetch 发起 POST 请求并处理流式响应
+  const controller = new AbortController();
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+    },
+    body: JSON.stringify(data),
+    credentials: 'include',
+    signal: controller.signal,
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No reader available');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    // 触发 open 事件
+    if (mockEventSource.onopen) {
+      mockEventSource.onopen(new Event('open'));
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (mockEventSource.onmessage) {
+            mockEventSource.onmessage(new MessageEvent('message', { data }));
+          }
+        }
+      }
+    }
+
+    // 处理剩余的数据
+    if (buffer.startsWith('data: ')) {
+      const data = buffer.slice(6);
+      if (mockEventSource.onmessage) {
+        mockEventSource.onmessage(new MessageEvent('message', { data }));
+      }
+    }
+  }).catch((error) => {
+    if (mockEventSource.onerror) {
+      mockEventSource.onerror(new ErrorEvent('error', { error }));
+    }
   });
 
-  // 注意：实际使用时可能需要通过其他方式传递认证信息
-  return eventSource;
+  // 重写 close 方法
+  mockEventSource.close = () => {
+    controller.abort();
+  };
+
+  return mockEventSource;
 };
 
 /**

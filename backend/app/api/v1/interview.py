@@ -95,8 +95,9 @@ async def list_interviews(
     return PaginatedResponse(
         items=sessions,
         total=total,
-        skip=skip,
-        limit=limit,
+        page=skip // limit + 1,
+        page_size=limit,
+        total_pages=(total + limit - 1) // limit,
     )
 
 
