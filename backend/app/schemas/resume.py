@@ -68,6 +68,8 @@ class EducationBase(BaseModel):
     gpa: Optional[str] = Field(None, max_length=20)
     courses: Optional[str] = None
     honors: Optional[str] = None
+    ranking: Optional[str] = Field(None, max_length=50)
+    is_current: Optional[bool] = False
     sort_order: int = 0
 
     @field_validator("start_date", "end_date", mode="before")
@@ -92,6 +94,8 @@ class EducationUpdate(BaseModel):
     gpa: Optional[str] = Field(None, max_length=20)
     courses: Optional[str] = None
     honors: Optional[str] = None
+    ranking: Optional[str] = Field(None, max_length=50)
+    is_current: Optional[bool] = None
     sort_order: Optional[int] = None
 
     @field_validator("start_date", "end_date", mode="before")
@@ -114,6 +118,8 @@ class EducationResponse(BaseModel):
     gpa: Optional[str] = None
     courses: Optional[str] = None
     honors: Optional[str] = None
+    ranking: Optional[str] = None
+    is_current: Optional[bool] = False
     sort_order: int = 0
 
     @field_validator("start_date", "end_date", mode="before")
@@ -135,9 +141,13 @@ class WorkExperienceBase(BaseModel):
 
     company_name: str = Field(default="", max_length=100)
     position: str = Field(default="", max_length=100)
+    department: Optional[str] = Field(None, max_length=100)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     description: str = Field(default="")
+    achievements: Optional[str] = None
+    tech_stack: Optional[str] = Field(None, max_length=500)
+    is_current: Optional[bool] = False
     is_internship: Optional[bool] = False
     sort_order: int = 0
 
@@ -157,9 +167,13 @@ class WorkExperienceUpdate(BaseModel):
 
     company_name: Optional[str] = Field(None, min_length=1, max_length=100)
     position: Optional[str] = Field(None, min_length=1, max_length=100)
+    department: Optional[str] = Field(None, max_length=100)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     description: Optional[str] = Field(None, min_length=1)
+    achievements: Optional[str] = None
+    tech_stack: Optional[str] = Field(None, max_length=500)
+    is_current: Optional[bool] = None
     is_internship: Optional[bool] = None
     sort_order: Optional[int] = None
 
@@ -177,9 +191,13 @@ class WorkExperienceResponse(BaseModel):
     id: int
     company_name: str
     position: str
+    department: Optional[str] = None
     start_date: str
     end_date: Optional[str] = None
     description: str
+    achievements: Optional[str] = None
+    tech_stack: Optional[str] = None
+    is_current: Optional[bool] = False
     is_internship: bool = False
     sort_order: int = 0
 
@@ -199,9 +217,13 @@ class WorkExperienceResponse(BaseModel):
                 "id": obj.id,
                 "company_name": obj.company_name,
                 "position": obj.position,
+                "department": getattr(obj, "department", None),
                 "start_date": obj.start_date,
                 "end_date": obj.end_date,
                 "description": obj.description,
+                "achievements": getattr(obj, "achievements", None),
+                "tech_stack": getattr(obj, "tech_stack", None),
+                "is_current": getattr(obj, "is_current", False),
                 "is_internship": getattr(obj, "exp_type", "work") == "internship",
                 "sort_order": getattr(obj, "sort_order", 0),
             }
@@ -219,10 +241,13 @@ class ProjectBase(BaseModel):
 
     project_name: str = Field(default="", max_length=100)
     role: str = Field(default="", max_length=100)
+    role_detail: Optional[str] = Field(None, max_length=200)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     project_link: Optional[str] = Field(None, max_length=500)
     description: str = Field(default="")
+    tech_stack: Optional[str] = Field(None, max_length=500)
+    is_current: Optional[bool] = False
     sort_order: int = 0
 
     @field_validator("start_date", "end_date", mode="before")
@@ -241,10 +266,13 @@ class ProjectUpdate(BaseModel):
 
     project_name: Optional[str] = Field(None, min_length=1, max_length=100)
     role: Optional[str] = Field(None, min_length=1, max_length=100)
+    role_detail: Optional[str] = Field(None, max_length=200)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     project_link: Optional[str] = Field(None, max_length=500)
     description: Optional[str] = Field(None, min_length=1)
+    tech_stack: Optional[str] = Field(None, max_length=500)
+    is_current: Optional[bool] = None
     sort_order: Optional[int] = None
 
     @field_validator("start_date", "end_date", mode="before")
@@ -261,10 +289,13 @@ class ProjectResponse(BaseModel):
     id: int
     project_name: str
     role: str
+    role_detail: Optional[str] = None
     start_date: str
     end_date: Optional[str] = None
     project_link: Optional[str] = None
     description: str
+    tech_stack: Optional[str] = None
+    is_current: Optional[bool] = False
     sort_order: int = 0
 
     @field_validator("start_date", "end_date", mode="before")
@@ -484,6 +515,17 @@ class ResumeFullSave(BaseModel):
     current_city: Optional[str] = Field(None, max_length=50)
     self_evaluation: Optional[str] = None
 
+    # 求职意向
+    target_position: Optional[str] = Field(None, max_length=100)
+    target_city: Optional[str] = Field(None, max_length=50)
+    start_work_date: Optional[str] = Field(None, max_length=50)
+
+    # 内部管理字段
+    salary_expectation: Optional[str] = Field(None, max_length=50)
+    application_status: Optional[str] = Field(None, pattern=r"^(preparing|submitted|interviewing|offer|rejected)$")
+    target_companies: Optional[str] = None
+    private_notes: Optional[str] = None
+
     # 子项数据（所有可选，默认空列表）
     educations: List[EducationCreate] = []
     work_experiences: List[WorkExperienceCreate] = []
@@ -524,6 +566,17 @@ class ResumeFullUpdate(BaseModel):
     avatar_ratio: Optional[str] = Field(None, pattern=r"^(1\.4|1)$")
     current_city: Optional[str] = Field(None, max_length=50)
     self_evaluation: Optional[str] = None
+
+    # 求职意向
+    target_position: Optional[str] = Field(None, max_length=100)
+    target_city: Optional[str] = Field(None, max_length=50)
+    start_work_date: Optional[str] = Field(None, max_length=50)
+
+    # 内部管理字段
+    salary_expectation: Optional[str] = Field(None, max_length=50)
+    application_status: Optional[str] = Field(None, pattern=r"^(preparing|submitted|interviewing|offer|rejected)$")
+    target_companies: Optional[str] = None
+    private_notes: Optional[str] = None
 
     # 子项数据（如果传入则整体替换）
     educations: Optional[List[EducationCreate]] = None

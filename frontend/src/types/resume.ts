@@ -44,6 +44,7 @@ export interface Education {
   start_date: string;
   end_date?: string | null;
   gpa?: string;
+  ranking?: string; // 专业排名
   courses?: string;
   honors?: string;
   is_current?: boolean;
@@ -54,9 +55,12 @@ export interface WorkExperience {
   id?: number;
   company_name: string;
   position: string;
+  department?: string; // 所属部门
   start_date: string;
   end_date?: string | null;
   description: string;
+  achievements?: string; // 主要成就
+  tech_stack?: string; // 技术栈
   is_current?: boolean;
   is_internship?: boolean;
 }
@@ -66,10 +70,12 @@ export interface Project {
   id?: number;
   project_name: string;
   role: string;
+  role_detail?: string; // 角色详情
   start_date: string;
   end_date?: string | null;
   project_link?: string;
   description: string;
+  tech_stack?: string; // 技术栈
   is_current?: boolean;
 }
 
@@ -129,6 +135,17 @@ export interface ResumeBase {
   is_default?: boolean;
   created_at?: string;
   updated_at?: string;
+
+  // 新增字段 - 求职意向
+  target_position?: string; // 求职意向岗位
+  target_city?: string; // 意向城市
+  start_work_date?: string; // 到岗时间
+
+  // 新增字段 - 内部管理 (隐藏字段)
+  private_notes?: string; // 私人备注
+  target_companies?: string; // 目标公司 (comma separated)
+  salary_expectation?: string; // 期望薪资
+  application_status?: 'preparing' | 'submitted' | 'interviewing' | 'offer' | 'rejected'; // 申请状态
 }
 
 /** 完整简历 */
@@ -194,6 +211,7 @@ export const educationSchema = z.object({
   start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
   gpa: z.string().max(20, 'GPA格式错误').optional(),
+  ranking: z.string().max(50, '排名信息过长').optional(),
   courses: z.string().max(500, '内容过长').optional(),
   honors: z.string().max(500, '内容过长').optional(),
   is_current: z.boolean().optional(),
@@ -204,9 +222,12 @@ export const workExperienceSchema = z.object({
   id: z.number().optional(),
   company_name: z.string().min(1, '请输入公司名称').max(100, '公司名称过长'),
   position: z.string().min(1, '请输入职位名称').max(100, '职位名称过长'),
+  department: z.string().max(50, '部门名称过长').optional(),
   start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
   description: z.string().min(20, '工作描述至少20字').max(2000, '工作描述过长'),
+  achievements: z.string().max(2000, '成就描述过长').optional(),
+  tech_stack: z.string().max(500, '技术栈过长').optional(),
   is_current: z.boolean().optional(),
   is_internship: z.boolean().optional(),
 });
@@ -216,10 +237,12 @@ export const projectSchema = z.object({
   id: z.number().optional(),
   project_name: z.string().min(1, '请输入项目名称').max(100, '项目名称过长'),
   role: z.string().min(1, '请输入项目角色').max(100, '角色名称过长'),
+  role_detail: z.string().max(500, '角色详情过长').optional(),
   start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
   project_link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
   description: z.string().min(20, '项目描述至少20字').max(2000, '项目描述过长'),
+  tech_stack: z.string().max(500, '技术栈过长').optional(),
   is_current: z.boolean().optional(),
 });
 
@@ -272,6 +295,16 @@ export const resumeBaseSchema = z.object({
   avatar_ratio: z.enum(['1.4', '1']).optional(),  // 头像比例
   current_city: z.string().min(1, '请选择当前居住地').max(100, '地址过长').optional(),
   self_evaluation: z.string().max(1000, '自我评价过长').optional(),
+
+  // 新增字段验证
+  target_position: z.string().max(50, '职位名称过长').optional(),
+  target_city: z.string().max(50, '城市名称过长').optional(),
+  start_work_date: z.string().max(50, '时间描述过长').optional(),
+  
+  private_notes: z.string().max(2000, '备注过长').optional(),
+  target_companies: z.string().max(500, '公司列表过长').optional(),
+  salary_expectation: z.string().max(50, '薪资描述过长').optional(),
+  application_status: z.enum(['preparing', 'submitted', 'interviewing', 'offer', 'rejected']).optional(),
 });
 
 /** 完整简历验证 Schema */

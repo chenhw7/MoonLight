@@ -50,6 +50,17 @@ class Resume(Base):
     # 自我评价
     self_evaluation: Mapped[Optional[str]] = mapped_column(Text)
 
+    # 求职意向
+    target_position: Mapped[Optional[str]] = mapped_column(String(100))
+    target_city: Mapped[Optional[str]] = mapped_column(String(50))
+    start_work_date: Mapped[Optional[str]] = mapped_column(String(50))
+
+    # 内部管理字段
+    salary_expectation: Mapped[Optional[str]] = mapped_column(String(50))
+    application_status: Mapped[Optional[str]] = mapped_column(String(20))
+    target_companies: Mapped[Optional[str]] = mapped_column(Text)
+    private_notes: Mapped[Optional[str]] = mapped_column(Text)
+
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), nullable=False
@@ -101,6 +112,8 @@ class Education(Base):
     gpa: Mapped[Optional[str]] = mapped_column(String(20))
     courses: Mapped[Optional[str]] = mapped_column(Text)
     honors: Mapped[Optional[str]] = mapped_column(Text)
+    ranking: Mapped[Optional[str]] = mapped_column(String(50))
+    is_current: Mapped[Optional[bool]] = mapped_column(default=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="educations")
@@ -119,6 +132,10 @@ class WorkExperience(Base):
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[Optional[date]] = mapped_column(Date)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    department: Mapped[Optional[str]] = mapped_column(String(100))
+    achievements: Mapped[Optional[str]] = mapped_column(Text)
+    tech_stack: Mapped[Optional[str]] = mapped_column(String(500))
+    is_current: Mapped[Optional[bool]] = mapped_column(default=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="work_experiences")
@@ -137,6 +154,9 @@ class Project(Base):
     end_date: Mapped[Optional[date]] = mapped_column(Date)
     project_link: Mapped[Optional[str]] = mapped_column(String(500))
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    role_detail: Mapped[Optional[str]] = mapped_column(String(200))
+    tech_stack: Mapped[Optional[str]] = mapped_column(String(500))
+    is_current: Mapped[Optional[bool]] = mapped_column(default=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="projects")

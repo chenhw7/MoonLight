@@ -137,6 +137,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
     const contacts = [];
     if (data.phone) contacts.push(data.phone);
     if (data.email) contacts.push(data.email);
+    if (data.current_city) contacts.push(data.current_city);
 
     if (contacts.length === 0) return null;
 
@@ -174,10 +175,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          alignItems: 'center', // 垂直居中对齐，平衡证件照比例头像
           marginBottom: '16px',
           paddingBottom: '12px',
-          borderBottom: `1px solid ${themeColor}`,
+          // borderBottom: `1px solid ${themeColor}`, // 移除头部下划线
           pageBreakInside: 'avoid', // 避免页面在头部中间断开
         }}
       >
@@ -193,6 +194,15 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           >
             {data.full_name || '姓名'}
           </h1>
+          {/* 求职意向 */}
+          {(data.target_position || data.target_city) && (
+            <div style={{ fontSize: '14px', marginBottom: '6px', color: themeColor, fontWeight: 500 }}>
+              {data.target_position && `求职意向：${data.target_position}`}
+              {data.target_position && data.target_city && ' | '}
+              {data.target_city}
+              {data.start_work_date && ` | ${data.start_work_date}到岗`}
+            </div>
+          )}
           {renderContactInfo()}
         </div>
 
@@ -236,10 +246,12 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               </div>
               <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px' }}>
                 {edu.major} · {getEducationLabel(edu.degree)}
-                {(edu.gpa || edu.honors) && (
+                {(edu.gpa || edu.ranking || edu.honors) && (
                   <span style={{ color: '#000000', marginLeft: '8px' }}>
                     {edu.gpa && `GPA: ${edu.gpa}`}
-                    {edu.gpa && edu.honors && ' | '}
+                    {edu.gpa && edu.ranking && ' | '}
+                    {edu.ranking && `排名: ${edu.ranking}`}
+                    {(edu.gpa || edu.ranking) && edu.honors && ' | '}
                     {edu.honors}
                   </span>
                 )}
@@ -275,12 +287,21 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   {work.company_name}
                   <span style={{ fontWeight: 'normal', color: '#000000' }}>
                     {' '}· {work.position}
+                    {work.department && ` · ${work.department}`}
                   </span>
                 </div>
                 <span style={{ fontSize: '13px', color: '#000000' }}>
                   {formatChineseDate(work.start_date)} - {work.is_current ? '至今' : formatChineseDate(work.end_date)}
                 </span>
               </div>
+              
+              {/* 技术栈 */}
+              {work.tech_stack && (
+                <div style={{ fontSize: '12px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                  <span style={{ fontWeight: 'bold' }}>技术栈：</span>{work.tech_stack}
+                </div>
+              )}
+
               {/* 描述 */}
               <p
                 style={{
@@ -299,6 +320,16 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               >
                 {work.description}
               </p>
+
+              {/* 主要成就 */}
+              {work.achievements && (
+                <div style={{ marginTop: '4px', fontSize: '13px', color: '#000000' }}>
+                  <span style={{ fontWeight: 'bold' }}>主要成就：</span>
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap', display: 'inline' }}>
+                    {work.achievements}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </section>
@@ -325,12 +356,21 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   {project.project_name}
                   <span style={{ fontWeight: 'normal', color: '#000000' }}>
                     {' '}· {project.role}
+                    {project.role_detail && ` (${project.role_detail})`}
                   </span>
                 </div>
                 <span style={{ fontSize: '13px', color: '#000000' }}>
                   {formatChineseDate(project.start_date)} - {project.is_current ? '至今' : formatChineseDate(project.end_date)}
                 </span>
               </div>
+
+              {/* 技术栈 */}
+              {project.tech_stack && (
+                <div style={{ fontSize: '12px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                  <span style={{ fontWeight: 'bold' }}>技术栈：</span>{project.tech_stack}
+                </div>
+              )}
+
               {/* 项目链接 */}
               {project.project_link && (
                 <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', wordWrap: 'break-word', wordBreak: 'break-all' }}>

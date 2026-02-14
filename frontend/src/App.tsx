@@ -17,6 +17,8 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/Home';
 import { ResumeCreate, ResumeList } from '@/pages/Resume';
+import { AIConfigForm } from '@/pages/AIConfig';
+import { InterviewConfig, InterviewChat, InterviewEvaluation, InterviewList } from '@/pages/Interview';
 
 const logger = createLogger('App');
 
@@ -167,6 +169,46 @@ function App() {
             element={
               <ProtectedRoute>
                 <ResumeCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-config"
+            element={
+              <ProtectedRoute>
+                <AIConfigForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview/config"
+            element={
+              <ProtectedRoute>
+                <InterviewConfig />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview/:sessionId"
+            element={
+              <ProtectedRoute>
+                <InterviewChat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview/:sessionId/evaluation"
+            element={
+              <ProtectedRoute>
+                <InterviewEvaluation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interviews"
+            element={
+              <ProtectedRoute>
+                <InterviewList />
               </ProtectedRoute>
             }
           />

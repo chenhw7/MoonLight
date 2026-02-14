@@ -62,16 +62,28 @@ const ProjectForm: React.FC = () => {
           />
         </div>
 
-        {/* 项目角色 */}
-        <div className="space-y-2">
-          <Label>项目角色</Label>
-          <Input
-            placeholder="如：前端负责人、核心开发"
-            value={project.role}
-            onChange={(e) =>
-              handleUpdateProject(index, { role: e.target.value })
-            }
-          />
+        {/* 项目角色和详情 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>项目角色</Label>
+            <Input
+              placeholder="如：前端负责人"
+              value={project.role}
+              onChange={(e) =>
+                handleUpdateProject(index, { role: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>角色详情 (可选)</Label>
+            <Input
+              placeholder="更具体的职责描述"
+              value={project.role_detail || ''}
+              onChange={(e) =>
+                handleUpdateProject(index, { role_detail: e.target.value })
+              }
+            />
+          </div>
         </div>
 
         {/* 项目链接 */}
@@ -131,6 +143,18 @@ const ProjectForm: React.FC = () => {
               />
             )}
           </div>
+        </div>
+
+        {/* 技术栈 */}
+        <div className="space-y-2">
+          <Label>技术栈</Label>
+          <Input
+            placeholder="如：Vue, Spring Boot, MySQL"
+            value={project.tech_stack || ''}
+            onChange={(e) =>
+              handleUpdateProject(index, { tech_stack: e.target.value })
+            }
+          />
         </div>
 
         {/* 项目描述 */}

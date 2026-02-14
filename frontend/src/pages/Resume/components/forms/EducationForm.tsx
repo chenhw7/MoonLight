@@ -160,15 +160,29 @@ const EducationForm: React.FC<EducationFormProps> = ({ resumeMode }) => {
 
         {/* GPA - 校招默认显示，社招可选 */}
         {(resumeMode === 'campus' || education.gpa) && (
-          <div className="space-y-2">
-            <Label>GPA</Label>
-            <Input
-              placeholder="如：3.8/4.0"
-              value={education.gpa || ''}
-              onChange={(e) =>
-                handleUpdateEducation(index, { gpa: e.target.value })
-              }
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>GPA</Label>
+              <Input
+                placeholder="如：3.8/4.0"
+                value={education.gpa || ''}
+                onChange={(e) =>
+                  handleUpdateEducation(index, { gpa: e.target.value })
+                }
+              />
+            </div>
+            {resumeMode === 'campus' && (
+              <div className="space-y-2">
+                <Label>专业排名</Label>
+                <Input
+                  placeholder="如：前10%、1/120"
+                  value={education.ranking || ''}
+                  onChange={(e) =>
+                    handleUpdateEducation(index, { ranking: e.target.value })
+                  }
+                />
+              </div>
+            )}
           </div>
         )}
 

@@ -10,6 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { ResumeFormData } from '@/types/resume';
 
 /**
@@ -129,6 +136,37 @@ const BasicInfoForm: React.FC = () => {
         )}
       </div>
 
+      {/* 求职意向 */}
+      <div className="space-y-4 border-t pt-4">
+        <h3 className="text-lg font-medium">求职意向</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="target_position">期望职位</Label>
+            <Input
+              id="target_position"
+              placeholder="如：高级前端工程师"
+              {...register('target_position')}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="target_city">期望城市</Label>
+            <Input
+              id="target_city"
+              placeholder="如：北京、上海"
+              {...register('target_city')}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="start_work_date">最快到岗时间</Label>
+            <Input
+              id="start_work_date"
+              placeholder="如：随时、2周内"
+              {...register('start_work_date')}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 自我评价 */}
       <div className="space-y-2">
         <Label htmlFor="self_evaluation">自我评价</Label>
@@ -142,6 +180,64 @@ const BasicInfoForm: React.FC = () => {
         {errors.self_evaluation && (
           <p className="text-sm text-red-500">{errors.self_evaluation.message}</p>
         )}
+      </div>
+
+      {/* 内部管理 (仅自己可见) */}
+      <div className="space-y-4 border-t pt-4 mt-8 bg-gray-50 p-4 rounded-lg border-dashed border-gray-300">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-medium text-gray-700">内部管理信息 (不展示在简历中)</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div className="space-y-2">
+            <Label htmlFor="salary_expectation">期望薪资</Label>
+            <Input
+              id="salary_expectation"
+              placeholder="如：25k-35k * 14"
+              {...register('salary_expectation')}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="application_status">申请状态</Label>
+            <Controller
+              name="application_status"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择当前状态" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="preparing">准备中</SelectItem>
+                    <SelectItem value="submitted">已投递</SelectItem>
+                    <SelectItem value="interviewing">面试中</SelectItem>
+                    <SelectItem value="offer">已拿Offer</SelectItem>
+                    <SelectItem value="rejected">已结束</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="target_companies">目标公司</Label>
+          <Input
+            id="target_companies"
+            placeholder="如：字节跳动, 腾讯, 阿里 (逗号分隔)"
+            {...register('target_companies')}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="private_notes">私人备注</Label>
+          <Textarea
+            id="private_notes"
+            placeholder="记录投递策略、面试重点等..."
+            rows={3}
+            {...register('private_notes')}
+          />
+        </div>
       </div>
     </div>
   );

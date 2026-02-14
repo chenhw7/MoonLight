@@ -15,6 +15,12 @@ from app.models.resume import (
     Portfolio,
     SocialLink,
 )
+from app.models.interview import (
+    InterviewSession,
+    InterviewMessage,
+    InterviewEvaluation,
+    AIConfig,
+)
 
 __all__ = [
     "User",
@@ -28,4 +34,8 @@ __all__ = [
     "Award",
     "Portfolio",
     "SocialLink",
+    "InterviewSession",
+    "InterviewMessage",
+    "InterviewEvaluation",
+    "AIConfig",
 ]

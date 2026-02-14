@@ -5,7 +5,7 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
-import { Moon, ChevronDown, LogOut, User, Settings, FileText, Plus, List } from 'lucide-react';
+import { Moon, ChevronDown, LogOut, User, Settings, FileText, Plus, List, MessageSquare, Bot, History, Settings2 } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { createLogger } from '@/utils/logger';
@@ -21,7 +21,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: '项目', path: '/projects' },
   { label: '团队', path: '/team' },
-  { label: '设置', path: '/settings' },
 ];
 
 export function Header() {
@@ -98,6 +97,42 @@ export function Header() {
   };
 
   const isResumeActive = location.pathname.startsWith('/resume');
+  const isInterviewActive = location.pathname.startsWith('/interview');
+
+  // Interview Menu State
+  const [isInterviewMenuOpen, setIsInterviewMenuOpen] = useState(false);
+  const interviewMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseInterviewMenu = useCallback(() => {
+    setIsInterviewMenuOpen(false);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        !buttonRef.current?.contains(event.target as Node)
+      ) {
+        handleCloseMenu();
+      }
+      if (
+        resumeMenuRef.current &&
+        !resumeMenuRef.current.contains(event.target as Node)
+      ) {
+        handleCloseResumeMenu();
+      }
+      if (
+        interviewMenuRef.current &&
+        !interviewMenuRef.current.contains(event.target as Node)
+      ) {
+        handleCloseInterviewMenu();
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [handleCloseMenu, handleCloseResumeMenu, handleCloseInterviewMenu]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -127,8 +162,8 @@ export function Header() {
             </Link>
 
             {/* 简历管理 Dropdown */}
-            <div 
-              className="relative" 
+            <div
+              className="relative"
               ref={resumeMenuRef}
               onMouseEnter={() => setIsResumeMenuOpen(true)}
               onMouseLeave={() => setIsResumeMenuOpen(false)}
@@ -144,7 +179,7 @@ export function Header() {
                 简历管理
                 <ChevronDown className={`h-3 w-3 transition-transform ${isResumeMenuOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {isResumeMenuOpen && (
                 <div
                   className="absolute left-0 top-full pt-1 w-48 animate-in fade-in zoom-in-95 duration-200"
@@ -165,6 +200,60 @@ export function Header() {
                     >
                       <List className="h-4 w-4" />
                       我的简历
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* AI 面试官 Dropdown */}
+            <div
+              className="relative"
+              ref={interviewMenuRef}
+              onMouseEnter={() => setIsInterviewMenuOpen(true)}
+              onMouseLeave={() => setIsInterviewMenuOpen(false)}
+            >
+              <button
+                className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                  isInterviewActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                onClick={() => setIsInterviewMenuOpen(!isInterviewMenuOpen)}
+              >
+                <Bot className="h-4 w-4 mr-1" />
+                AI 面试官
+                <ChevronDown className={`h-3 w-3 transition-transform ${isInterviewMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isInterviewMenuOpen && (
+                <div
+                  className="absolute left-0 top-full pt-1 w-48 animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <div className="rounded-md border bg-popover p-1 shadow-lg">
+                    <Link
+                      to="/interview/config"
+                      onClick={() => setIsInterviewMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      开始面试
+                    </Link>
+                    <Link
+                      to="/interviews"
+                      onClick={() => setIsInterviewMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <History className="h-4 w-4" />
+                      面试历史
+                    </Link>
+                    <Link
+                      to="/ai-config"
+                      onClick={() => setIsInterviewMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      AI 配置
                     </Link>
                   </div>
                 </div>
