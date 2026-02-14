@@ -6,28 +6,39 @@
  * AI 配置基础类型
  */
 export interface AIConfigBase {
+  name: string;
   provider: string;
   base_url: string;
   chat_model: string;
-  reasoning_model?: string;
-  vision_model?: string;
-  voice_model?: string;
+  temperature: number;
+  max_tokens: number;
+  is_active: boolean;
+}
+
+/**
+ * AI 配置创建请求
+ */
+export interface AIConfigCreate {
+  name: string;
+  provider: string;
+  base_url: string;
+  api_key: string;
+  chat_model: string;
   temperature: number;
   max_tokens: number;
 }
 
 /**
- * AI 配置创建/更新请求
- */
-export interface AIConfigCreate extends AIConfigBase {
-  api_key: string;
-}
-
-/**
  * AI 配置更新请求（部分字段）
  */
-export interface AIConfigUpdate extends Partial<AIConfigBase> {
+export interface AIConfigUpdate {
+  name?: string;
+  provider?: string;
+  base_url?: string;
   api_key?: string;
+  chat_model?: string;
+  temperature?: number;
+  max_tokens?: number;
 }
 
 /**
@@ -39,6 +50,14 @@ export interface AIConfigResponse extends AIConfigBase {
   api_key_masked: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * AI 配置列表响应
+ */
+export interface AIConfigListResponse {
+  configs: AIConfigResponse[];
+  active_config_id: number | null;
 }
 
 /**
@@ -112,11 +131,17 @@ export const AI_PROVIDERS: AIProviderOption[] = [
 ];
 
 /**
- * 默认 AI 配置
+ * 获取提供商标签
  */
-export const DEFAULT_AI_CONFIG: Partial<AIConfigCreate> = {
-  provider: 'openai-compatible',
-  chat_model: 'gpt-4',
-  temperature: 0.7,
-  max_tokens: 4096,
+export const getProviderLabel = (value: string): string => {
+  const provider = AI_PROVIDERS.find((p) => p.value === value);
+  return provider?.label || value;
+};
+
+/**
+ * 获取提供商默认 API 地址
+ */
+export const getProviderDefaultUrl = (value: string): string => {
+  const provider = AI_PROVIDERS.find((p) => p.value === value);
+  return provider?.defaultBaseUrl || '';
 };

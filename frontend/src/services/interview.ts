@@ -136,7 +136,10 @@ export const sendMessageStream = (
   // 由于需要使用 POST 请求发送消息内容，我们创建一个自定义的 EventSource-like 对象
   const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
   const url = `${baseURL}/interviews/${sessionId}/messages/stream`;
-  
+
+  // 从 localStorage 或 sessionStorage 获取 token
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+
   // 创建一个模拟的 EventSource 对象
   const mockEventSource = {
     onmessage: null as ((event: MessageEvent) => void) | null,
@@ -150,13 +153,21 @@ export const sendMessageStream = (
 
   // 使用 fetch 发起 POST 请求并处理流式响应
   const controller = new AbortController();
-  
+
+  // 构建请求头，包含认证信息
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+  };
+
+  // 如果有 token，添加到请求头
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream',
-    },
+    headers: headers,
     body: JSON.stringify(data),
     credentials: 'include',
     signal: controller.signal,

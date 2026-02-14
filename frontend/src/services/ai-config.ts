@@ -5,20 +5,39 @@
  */
 
 import api from './api';
-import {
+import type {
   AIConfigCreate,
   AIConfigResponse,
   AIConfigTestRequest,
   AIConfigTestResponse,
   AIConfigUpdate,
+  AIConfigListResponse,
   ModelListResponse,
 } from '@/types/ai-config';
 
 /**
- * 获取 AI 配置
+ * 获取所有 AI 配置
  */
-export const getAIConfig = async (): Promise<AIConfigResponse> => {
-  const response = await api.get<AIConfigResponse>('/ai-config');
+export const getAIConfigs = async (): Promise<AIConfigListResponse> => {
+  const response = await api.get<AIConfigListResponse>('/ai-config');
+  return response;
+};
+
+/**
+ * 获取当前激活的 AI 配置
+ */
+export const getActiveAIConfig = async (): Promise<AIConfigResponse> => {
+  const response = await api.get<AIConfigResponse>('/ai-config/active');
+  return response;
+};
+
+/**
+ * 创建 AI 配置
+ */
+export const createAIConfig = async (
+  config: AIConfigCreate
+): Promise<AIConfigResponse> => {
+  const response = await api.post<AIConfigResponse>('/ai-config', config);
   return response;
 };
 
@@ -26,27 +45,26 @@ export const getAIConfig = async (): Promise<AIConfigResponse> => {
  * 更新 AI 配置
  */
 export const updateAIConfig = async (
-  config: AIConfigCreate
-): Promise<AIConfigResponse> => {
-  const response = await api.put<AIConfigResponse>('/ai-config', config);
-  return response;
-};
-
-/**
- * 部分更新 AI 配置
- */
-export const patchAIConfig = async (
+  configId: number,
   config: AIConfigUpdate
 ): Promise<AIConfigResponse> => {
-  const response = await api.patch<AIConfigResponse>('/ai-config', config);
+  const response = await api.put<AIConfigResponse>(`/ai-config/${configId}`, config);
   return response;
 };
 
 /**
  * 删除 AI 配置
  */
-export const deleteAIConfig = async (): Promise<void> => {
-  await api.delete('/ai-config');
+export const deleteAIConfig = async (configId: number): Promise<void> => {
+  await api.delete(`/ai-config/${configId}`);
+};
+
+/**
+ * 激活 AI 配置（设为当前使用）
+ */
+export const activateAIConfig = async (configId: number): Promise<AIConfigResponse> => {
+  const response = await api.post<AIConfigResponse>(`/ai-config/${configId}/activate`);
+  return response;
 };
 
 /**

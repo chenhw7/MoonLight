@@ -20,10 +20,32 @@ class AIConfigService:
     """AI 配置服务。"""
 
     @staticmethod
+    async def get_by_id(
+        db: AsyncSession, config_id: int, user_id: int
+    ) -> Optional[AIConfig]:
+        """根据 ID 获取配置。
+
+        Args:
+            db: 数据库会话
+            config_id: 配置 ID
+            user_id: 用户 ID
+
+        Returns:
+            AI 配置，如果不存在返回 None
+        """
+        result = await db.execute(
+            select(AIConfig).where(
+                AIConfig.id == config_id,
+                AIConfig.user_id == user_id
+            )
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
     async def get_by_user_id(
         db: AsyncSession, user_id: int
     ) -> Optional[AIConfig]:
-        """获取用户的 AI 配置。
+        """获取用户的当前激活 AI 配置。
 
         Args:
             db: 数据库会话
@@ -33,15 +55,36 @@ class AIConfigService:
             AI 配置，如果不存在返回 None
         """
         result = await db.execute(
-            select(AIConfig).where(AIConfig.user_id == user_id)
+            select(AIConfig).where(
+                AIConfig.user_id == user_id,
+                AIConfig.is_active == True
+            )
         )
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def create_or_update(
+    async def get_all_by_user_id(
+        db: AsyncSession, user_id: int
+    ) -> list[AIConfig]:
+        """获取用户的所有 AI 配置。
+
+        Args:
+            db: 数据库会话
+            user_id: 用户 ID
+
+        Returns:
+            AI 配置列表
+        """
+        result = await db.execute(
+            select(AIConfig).where(AIConfig.user_id == user_id)
+        )
+        return list(result.scalars().all())
+
+    @staticmethod
+    async def create(
         db: AsyncSession, user_id: int, config_data: AIConfigCreate
     ) -> AIConfig:
-        """创建或更新 AI 配置。
+        """创建新的 AI 配置。
 
         Args:
             db: 数据库会话
@@ -49,79 +92,65 @@ class AIConfigService:
             config_data: 配置数据
 
         Returns:
-            创建或更新后的 AI 配置
+            创建后的 AI 配置
         """
-        # 查询现有配置
-        existing = await AIConfigService.get_by_user_id(db, user_id)
+        # 检查是否已有配置，如果没有，设为激活
+        existing = await AIConfigService.get_all_by_user_id(db, user_id)
+        is_first = len(existing) == 0
 
-        if existing:
-            # 更新现有配置
-            existing.provider = config_data.provider
-            existing.base_url = config_data.base_url
-            existing.api_key = config_data.api_key
-            existing.chat_model = config_data.chat_model
-            existing.reasoning_model = config_data.reasoning_model
-            existing.vision_model = config_data.vision_model
-            existing.voice_model = config_data.voice_model
-            existing.temperature = config_data.temperature
-            existing.max_tokens = config_data.max_tokens
+        new_config = AIConfig(
+            user_id=user_id,
+            name=config_data.name,
+            provider=config_data.provider,
+            base_url=config_data.base_url,
+            api_key=config_data.api_key,
+            chat_model=config_data.chat_model,
+            temperature=config_data.temperature,
+            max_tokens=config_data.max_tokens,
+            is_active=is_first,  # 第一个配置自动设为激活
+        )
 
-            await db.commit()
-            await db.refresh(existing)
+        db.add(new_config)
+        await db.commit()
+        await db.refresh(new_config)
 
-            logger.info(
-                "AI config updated",
-                extra={"user_id": user_id, "config_id": existing.id},
-            )
-            return existing
-        else:
-            # 创建新配置
-            new_config = AIConfig(
-                user_id=user_id,
-                provider=config_data.provider,
-                base_url=config_data.base_url,
-                api_key=config_data.api_key,
-                chat_model=config_data.chat_model,
-                reasoning_model=config_data.reasoning_model,
-                vision_model=config_data.vision_model,
-                voice_model=config_data.voice_model,
-                temperature=config_data.temperature,
-                max_tokens=config_data.max_tokens,
-            )
-
-            db.add(new_config)
-            await db.commit()
-            await db.refresh(new_config)
-
-            logger.info(
-                "AI config created",
-                extra={"user_id": user_id, "config_id": new_config.id},
-            )
-            return new_config
+        logger.info(
+            "AI config created",
+            extra={"user_id": user_id, "config_id": new_config.id},
+        )
+        return new_config
 
     @staticmethod
     async def update(
         db: AsyncSession,
+        config_id: int,
         user_id: int,
         config_update: AIConfigUpdate,
     ) -> Optional[AIConfig]:
-        """部分更新 AI 配置。
+        """更新 AI 配置。
 
         Args:
             db: 数据库会话
+            config_id: 配置 ID
             user_id: 用户 ID
             config_update: 更新的配置数据
 
         Returns:
             更新后的 AI 配置，如果不存在返回 None
         """
-        config = await AIConfigService.get_by_user_id(db, user_id)
+        config = await AIConfigService.get_by_id(db, config_id, user_id)
         if not config:
             return None
+
+        # 特殊标记：使用已保存的 Key
+        USE_SAVED_KEY = "__USE_SAVED_KEY__"
 
         update_data = config_update.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
+            if field == "api_key" and value == USE_SAVED_KEY:
+                # 跳过，保留原 Key
+                continue
             if hasattr(config, field):
                 setattr(config, field, value)
 
@@ -129,34 +158,83 @@ class AIConfigService:
         await db.refresh(config)
 
         logger.info(
-            "AI config partially updated",
+            "AI config updated",
             extra={"user_id": user_id, "config_id": config.id},
         )
         return config
 
     @staticmethod
-    async def delete(db: AsyncSession, user_id: int) -> bool:
+    async def delete(db: AsyncSession, config_id: int, user_id: int) -> bool:
         """删除 AI 配置。
 
         Args:
             db: 数据库会话
+            config_id: 配置 ID
             user_id: 用户 ID
 
         Returns:
             是否成功删除
         """
-        config = await AIConfigService.get_by_user_id(db, user_id)
+        config = await AIConfigService.get_by_id(db, config_id, user_id)
         if not config:
             return False
 
+        was_active = config.is_active
         await db.delete(config)
         await db.commit()
 
+        # 如果删除的是激活配置，尝试将第一个剩余配置设为激活
+        if was_active:
+            remaining = await AIConfigService.get_all_by_user_id(db, user_id)
+            if remaining:
+                remaining[0].is_active = True
+                await db.commit()
+
         logger.info(
             "AI config deleted",
-            extra={"user_id": user_id, "config_id": config.id},
+            extra={"user_id": user_id, "config_id": config_id},
         )
         return True
+
+    @staticmethod
+    async def set_active(
+        db: AsyncSession, config_id: int, user_id: int
+    ) -> Optional[AIConfig]:
+        """设置当前激活配置。
+
+        Args:
+            db: 数据库会话
+            config_id: 配置 ID
+            user_id: 用户 ID
+
+        Returns:
+            激活的配置，如果不存在返回 None
+        """
+        # 先取消所有激活状态
+        result = await db.execute(
+            select(AIConfig).where(
+                AIConfig.user_id == user_id,
+                AIConfig.is_active == True
+            )
+        )
+        for config in result.scalars().all():
+            config.is_active = False
+
+        # 设置指定配置为激活
+        target = await AIConfigService.get_by_id(db, config_id, user_id)
+        if not target:
+            await db.commit()
+            return None
+
+        target.is_active = True
+        await db.commit()
+        await db.refresh(target)
+
+        logger.info(
+            "AI config set active",
+            extra={"user_id": user_id, "config_id": config_id},
+        )
+        return target
 
     @staticmethod
     def mask_api_key(api_key: str) -> str:
@@ -193,50 +271,20 @@ class AIConfigTestService:
         """
         try:
             client = AIClient(base_url=base_url, api_key=api_key)
-
-            # 测试连接
             models = await client.list_models()
-
-            logger.info(
-                "AI connection test successful",
-                extra={
-                    "base_url": base_url,
-                    "models_count": len(models),
-                },
-            )
-
-            return (
-                True,
-                f"连接成功！发现 {len(models)} 个可用模型",
-                models,
-            )
-
+            return True, f"连接成功，发现 {len(models)} 个可用模型", models
         except AIClientError as e:
-            logger.error(
+            logger.warning(
                 "AI connection test failed",
-                extra={
-                    "base_url": base_url,
-                    "error": str(e),
-                },
+                extra={"base_url": base_url, "error": str(e)},
             )
-            return (
-                False,
-                f"连接失败：{e.message}",
-                [],
-            )
+            return False, f"连接失败: {str(e)}", []
         except Exception as e:
             logger.error(
-                "AI connection test unexpected error",
-                extra={
-                    "base_url": base_url,
-                    "error": str(e),
-                },
+                "AI connection test error",
+                extra={"base_url": base_url, "error": str(e)},
             )
-            return (
-                False,
-                f"连接失败：{str(e)}",
-                [],
-            )
+            return False, f"测试出错: {str(e)}", []
 
     @staticmethod
     async def fetch_models(base_url: str, api_key: str) -> list[str]:
@@ -247,10 +295,14 @@ class AIConfigTestService:
             api_key: API 密钥
 
         Returns:
-            模型 ID 列表
+            可用模型列表
         """
         try:
             client = AIClient(base_url=base_url, api_key=api_key)
             return await client.list_models()
-        except Exception:
+        except Exception as e:
+            logger.error(
+                "Failed to fetch models",
+                extra={"base_url": base_url, "error": str(e)},
+            )
             return []

@@ -9,6 +9,34 @@ import { createLogger } from '@/utils/logger';
 
 const logger = createLogger('API');
 
+// 全局认证清除回调（避免循环依赖）
+let clearAuthCallback: (() => void) | null = null;
+
+/**
+ * 设置认证清除回调
+ * 由 authStore 在初始化时注册
+ */
+export function setClearAuthCallback(callback: () => void) {
+  clearAuthCallback = callback;
+}
+
+/**
+ * 清除认证状态
+ * 同时清除 storage 和 authStore 状态
+ */
+function clearAuth() {
+  // 清除 token 存储
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('access_token');
+  sessionStorage.removeItem('refresh_token');
+  
+  // 清除 authStore 状态
+  if (clearAuthCallback) {
+    clearAuthCallback();
+  }
+}
+
 // API 基础配置
 // 后端 API 路径结构: /api/v1/{resource}/{action}
 // 符合 RESTful API 版本化规范
@@ -150,11 +178,8 @@ axiosInstance.interceptors.response.use(
           logger.error('Token refresh failed', { error: refreshError });
           processQueue(refreshError, null);
           
-          // 刷新失败，清除 token 并跳转
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          sessionStorage.removeItem('access_token');
-          sessionStorage.removeItem('refresh_token');
+          // 刷新失败，清除认证状态并跳转
+          clearAuth();
           
           if (currentPath !== '/login') {
             window.location.href = '/login';
@@ -165,11 +190,8 @@ axiosInstance.interceptors.response.use(
         }
       }
 
-      // 无 refresh token 或重试失败，清除本地存储的 token 并跳转
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      sessionStorage.removeItem('access_token');
-      sessionStorage.removeItem('refresh_token');
+      // 无 refresh token 或重试失败，清除认证状态并跳转
+      clearAuth();
 
       // 跳转到登录页
       if (currentPath !== '/login') {

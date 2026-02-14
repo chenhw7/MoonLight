@@ -11,25 +11,33 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 class AIConfigBase(BaseModel):
     """AI 配置基础模型。"""
 
+    name: str = Field(default="未命名配置", max_length=100)
     provider: str = Field(default="openai-compatible", max_length=50)
     base_url: str = Field(..., max_length=500)
-    chat_model: str = Field(default="gpt-4", max_length=100)
+    chat_model: str = Field(default="", max_length=100)  # 默认为空，让用户选择
     reasoning_model: Optional[str] = Field(default=None, max_length=100)
     vision_model: Optional[str] = Field(default=None, max_length=100)
     voice_model: Optional[str] = Field(default=None, max_length=100)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4096, ge=1, le=8192)
+    is_active: bool = Field(default=False)
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class AIConfigCreate(AIConfigBase):
+class AIConfigCreate(BaseModel):
     """AI 配置创建模型。
 
-    用于创建或更新 AI 配置。
+    用于创建新的 AI 配置。
     """
 
-    api_key: str = Field(..., min_length=1, max_length=500)
+    name: str = Field(default="未命名配置", max_length=100)
+    provider: str = Field(default="openai-compatible", max_length=50)
+    base_url: str = Field(..., max_length=500)
+    api_key: str = Field(default="", max_length=500)  # 允许空字符串，创建后可再填写
+    chat_model: str = Field(default="gpt-4", max_length=100)
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0)
+    max_tokens: int = Field(default=4096, ge=1, le=8192)
 
     @field_validator("base_url")
     @classmethod
@@ -43,23 +51,21 @@ class AIConfigCreate(AIConfigBase):
 class AIConfigUpdate(BaseModel):
     """AI 配置更新模型。
 
-    用于部分更新 AI 配置。
+    用于更新 AI 配置。
     """
 
+    name: Optional[str] = Field(default=None, max_length=100)
     provider: Optional[str] = Field(default=None, max_length=50)
     base_url: Optional[str] = Field(default=None, max_length=500)
     api_key: Optional[str] = Field(default=None, min_length=1, max_length=500)
     chat_model: Optional[str] = Field(default=None, max_length=100)
-    reasoning_model: Optional[str] = Field(default=None, max_length=100)
-    vision_model: Optional[str] = Field(default=None, max_length=100)
-    voice_model: Optional[str] = Field(default=None, max_length=100)
     temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0)
     max_tokens: Optional[int] = Field(default=None, ge=1, le=8192)
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class AIConfigResponse(AIConfigBase):
+class AIConfigResponse(BaseModel):
     """AI 配置响应模型。
 
     用于返回 AI 配置信息（不包含 api_key）。
@@ -67,21 +73,27 @@ class AIConfigResponse(AIConfigBase):
 
     id: int
     user_id: int
+    name: str
+    provider: str
+    base_url: str
+    chat_model: str
+    temperature: float
+    max_tokens: int
+    is_active: bool
     api_key_masked: str = Field(
         ..., description="脱敏后的 API Key，如 sk-****1234"
     )
+    created_at: str
+    updated_at: str
 
     model_config = ConfigDict(from_attributes=True)
 
-    @field_validator("api_key_masked", mode="before")
-    @classmethod
-    def mask_api_key(cls, v: Optional[str]) -> str:
-        """脱敏 API Key。"""
-        if not v:
-            return ""
-        if len(v) <= 8:
-            return "****"
-        return f"{v[:4]}****{v[-4:]}"
+
+class AIConfigListResponse(BaseModel):
+    """AI 配置列表响应模型。"""
+
+    configs: list[AIConfigResponse]
+    active_config_id: Optional[int] = None
 
 
 class AIConfigTestRequest(BaseModel):
@@ -111,3 +123,9 @@ class ModelListResponse(BaseModel):
     """模型列表响应模型。"""
 
     models: list[str]
+
+
+class SetActiveConfigRequest(BaseModel):
+    """设置当前激活配置请求模型。"""
+
+    config_id: int

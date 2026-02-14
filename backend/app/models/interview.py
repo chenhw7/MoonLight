@@ -281,11 +281,12 @@ class InterviewEvaluation(Base):
 class AIConfig(Base):
     """AI 配置模型。
 
-    存储用户的 AI 模型配置信息。
+    存储用户的 AI 模型配置信息。支持多配置，通过 is_active 标记当前使用的配置。
 
     Attributes:
         id: 主键 ID
         user_id: 关联用户 ID
+        name: 配置名称
         provider: 提供商类型
         base_url: API 基础 URL
         api_key: API 密钥（加密存储）
@@ -295,6 +296,7 @@ class AIConfig(Base):
         voice_model: 语音模型名称
         temperature: 温度参数
         max_tokens: 最大 token 数
+        is_active: 是否为当前使用的配置
         created_at: 创建时间
         updated_at: 更新时间
     """
@@ -305,7 +307,17 @@ class AIConfig(Base):
         Integer, primary_key=True, autoincrement=True
     )
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, unique=True
+        ForeignKey("users.id"), nullable=False
+    )
+
+    # 配置名称（用户自定义）
+    name: Mapped[str] = mapped_column(
+        String(100), nullable=False, default="未命名配置"
+    )
+
+    # 是否为当前使用的配置
+    is_active: Mapped[bool] = mapped_column(
+        default=False, nullable=False
     )
 
     # 提供商配置
@@ -352,6 +364,13 @@ class AIConfig(Base):
 
     # 关联关系
     user: Mapped["User"] = relationship("User")
+
+    # 唯一约束：每个用户只有一个激活的配置
+    __table_args__ = (
+        # 移除 user_id 的 unique 约束，改为联合约束
+        # 确保每个用户的配置名称唯一
+        # 数据库级别的约束由迁移文件处理
+    )
 
     def __repr__(self) -> str:
         return (

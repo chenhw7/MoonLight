@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { createLogger } from '@/utils/logger';
+import { setClearAuthCallback } from '@/services/api';
 import type { User } from '@/types/auth';
 
 const logger = createLogger('AuthStore');
@@ -141,6 +142,16 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// 注册 API 层的认证清除回调
+// 当 API 返回 401 且刷新失败时，会调用此回调清除认证状态
+setClearAuthCallback(() => {
+  const state = useAuthStore.getState();
+  if (state.isAuthenticated) {
+    logger.info('Clearing auth state from API callback');
+    state.clearAuth();
+  }
+});
 
 /**
  * 获取当前认证状态

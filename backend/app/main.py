@@ -12,6 +12,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.api.v1 import router as api_v1_router
 from app.core.config import get_settings
@@ -82,117 +84,72 @@ app.add_middleware(
 )
 
 
-@app.middleware("http")
-async def logging_middleware(request: Request, call_next):
-    """请求日志中间件。
+class LoggingMiddleware:
+    """请求日志中间件（纯ASGI实现，兼容StreamingResponse）。
 
     记录每个请求的详细信息，包括请求 ID、处理时间、请求体和响应体等。
-
-    Args:
-        request: FastAPI 请求对象
-        call_next: 下一个处理函数
-
-    Returns:
-        Response: HTTP 响应对象
+    使用纯ASGI实现以避免BaseHTTPMiddleware与StreamingResponse的兼容性问题。
     """
-    # 生成请求 ID
-    request_id = str(uuid.uuid4())[:8]
-    request.state.request_id = request_id
 
-    # 获取客户端信息
-    client_ip = request.client.host if request.client else "unknown"
-    method = request.method
-    path = request.url.path
+    def __init__(self, app: ASGIApp):
+        self.app = app
 
-    # 创建请求日志记录器
-    request_logger = get_request_logger(request_id, client_ip, method, path)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-    # 读取请求体
-    request_body = None
-    body_size = 0
-    if method in ["POST", "PUT", "PATCH"]:
+        # 生成请求 ID
+        request_id = str(uuid.uuid4())[:8]
+
+        # 获取客户端信息
+        client = scope.get("client")
+        client_ip = client[0] if client else "unknown"
+        method = scope.get("method", "UNKNOWN")
+        path = scope.get("path", "")
+
+        # 创建请求日志记录器
+        request_logger = get_request_logger(request_id, client_ip, method, path)
+
+        # 记录请求开始
+        start_time = time.time()
+        request_logger.info("Request started", path=path, method=method)
+
+        # 包装send以捕获响应信息
+        response_status = None
+        response_headers = None
+
+        async def wrapped_send(message):
+            nonlocal response_status, response_headers
+            if message["type"] == "http.response.start":
+                response_status = message["status"]
+                response_headers = message.get("headers", [])
+                # 添加请求ID到响应头
+                headers_list = list(message.get("headers", []))
+                headers_list.append([b"x-request-id", request_id.encode()])
+                message["headers"] = headers_list
+            await send(message)
+
         try:
-            body = await request.body()
-            body_size = len(body) if body else 0
-            if body:
-                try:
-                    request_body = body.decode("utf-8")
-                    # 限制日志长度，避免过大（base64 头像数据可能很大）
-                    if len(request_body) > 500:
-                        request_body = request_body[:500] + f"... [truncated, total {body_size} bytes]"
-                except UnicodeDecodeError:
-                    request_body = f"[binary data, {body_size} bytes]"
-            # 重新设置请求体，以便后续处理
-            async def receive():
-                return {"type": "http.request", "body": body}
-            request._receive = receive
+            await self.app(scope, receive, wrapped_send)
+            process_time = (time.time() - start_time) * 1000
+            request_logger.info(
+                "Request completed",
+                status_code=response_status,
+                latency_ms=round(process_time, 2),
+            )
         except Exception as e:
-            request_logger.debug("Failed to read request body", error=str(e))
+            process_time = (time.time() - start_time) * 1000
+            request_logger.error(
+                "Request failed",
+                error=str(e),
+                latency_ms=round(process_time, 2),
+            )
+            raise
 
-    # 记录请求开始
-    start_time = time.time()
-    log_data = {
-        "query": str(request.query_params),
-        "body_size": body_size,
-    }
-    if request_body:
-        log_data["body"] = request_body
-    request_logger.info("Request started", **log_data)
 
-    # 处理请求
-    try:
-        response = await call_next(request)
-        process_time = (time.time() - start_time) * 1000
-
-        # 读取响应体（仅开发环境，且跳过大响应避免性能问题）
-        response_body = None
-        if settings.is_development and response.status_code != 204:
-            try:
-                from starlette.responses import StreamingResponse
-                if not isinstance(response, StreamingResponse):
-                    response_body_chunks = []
-                    async for chunk in response.body_iterator:
-                        response_body_chunks.append(chunk)
-                    raw_body = b"".join(response_body_chunks)
-                    # 只对小响应记录内容（跳过包含 base64 图片的大响应）
-                    if len(raw_body) <= 5000:
-                        response_body = raw_body.decode("utf-8")
-                        if len(response_body) > 1000:
-                            response_body = response_body[:1000] + "... [truncated]"
-                    else:
-                        response_body = f"[large response, {len(raw_body)} bytes]"
-                    # 重建响应
-                    from starlette.responses import Response
-                    response = Response(
-                        content=raw_body,
-                        status_code=response.status_code,
-                        headers=dict(response.headers),
-                        media_type=response.media_type,
-                    )
-            except Exception as e:
-                request_logger.debug("Failed to read response body", error=str(e))
-
-        # 记录请求完成
-        log_data = {
-            "status_code": response.status_code,
-            "latency_ms": round(process_time, 2),
-        }
-        if response_body:
-            log_data["response_body"] = response_body
-        request_logger.info("Request completed", **log_data)
-
-        # 添加请求 ID 到响应头
-        response.headers["X-Request-ID"] = request_id
-        return response
-
-    except Exception as e:
-        process_time = (time.time() - start_time) * 1000
-        request_logger.error(
-            "Request failed",
-            error=str(e),
-            latency_ms=round(process_time, 2),
-        )
-        raise
+# 添加纯ASGI日志中间件（在CORS之后添加）
+app.add_middleware(LoggingMiddleware)
 
 
 # 注册 API 路由
