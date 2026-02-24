@@ -21,9 +21,11 @@ import {
   Clock,
   AlertCircle,
   Sparkles,
+  Mic,
+  Square,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { SimpleDialog } from '@/components/ui/simple-dialog';
 import {
   getInterviewSession,
   getInterviewMessages,
@@ -47,6 +50,8 @@ import {
   abortInterviewSession,
   nextRound,
 } from '@/services/interview';
+import { recognizeSpeech } from '@/services/speech';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import {
   InterviewSessionDetail,
   InterviewMessageResponse,
@@ -54,6 +59,7 @@ import {
   ROUND_DISPLAY_NAMES,
 } from '@/types/interview';
 import { createLogger } from '@/utils/logger';
+import { cn } from '@/lib/utils';
 
 const logger = createLogger('InterviewChat');
 
@@ -81,9 +87,42 @@ export function InterviewChat() {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showAbortDialog, setShowAbortDialog] = useState(false);
 
+  // 语音识别状态
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [recognizedText, setRecognizedText] = useState('');
+  const [showRecognizedDialog, setShowRecognizedDialog] = useState(false);
+
+  // 录音功能
+  const { state: recordingState, duration: recordingDuration, startRecording, stopRecording, reset: resetRecording } = useVoiceRecorder({
+    maxDuration: 60,
+    onError: (error) => {
+      logger.error('录音错误', { error });
+      alert(`录音失败: ${error}`);
+    },
+  });
+
   // 滚动引用
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 自动调整输入框高度
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // 重置高度以获取正确的 scrollHeight
+    textarea.style.height = 'auto';
+
+    // 计算新高度（限制在 24px 到 120px 之间）
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, 24), 120);
+    textarea.style.height = `${newHeight}px`;
+  }, []);
+
+  // 当输入内容变化时调整高度
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [inputMessage, adjustTextareaHeight]);
 
   // 加载面试数据
   const loadInterviewData = useCallback(async () => {
@@ -292,6 +331,47 @@ export function InterviewChat() {
       handleSendMessage();
     }
   }, [handleSendMessage]);
+
+  // 处理录音按钮点击
+  const handleRecordClick = useCallback(async () => {
+    if (recordingState === 'idle') {
+      await startRecording();
+    } else if (recordingState === 'recording') {
+      const audioBlob = await stopRecording();
+      if (audioBlob) {
+        setIsRecognizing(true);
+        try {
+          const result = await recognizeSpeech(audioBlob);
+          setRecognizedText(result.text);
+          setShowRecognizedDialog(true);
+        } catch (error) {
+          logger.error('语音识别失败', { error });
+          alert('语音识别失败，请重试');
+        } finally {
+          setIsRecognizing(false);
+          resetRecording();
+        }
+      }
+    }
+  }, [recordingState, startRecording, stopRecording, resetRecording]);
+
+  // 确认添加识别结果
+  const handleConfirmRecognizedText = useCallback(() => {
+    setInputMessage((prev) => {
+      const separator = prev && !prev.endsWith(' ') ? ' ' : '';
+      return prev + separator + recognizedText;
+    });
+    setShowRecognizedDialog(false);
+    setRecognizedText('');
+    // 聚焦到输入框
+    setTimeout(() => textareaRef.current?.focus(), 100);
+  }, [recognizedText]);
+
+  // 取消识别结果
+  const handleCancelRecognizedText = useCallback(() => {
+    setShowRecognizedDialog(false);
+    setRecognizedText('');
+  }, []);
 
   // 获取进度提示文本
   const getProgressHint = () => {
@@ -527,28 +607,117 @@ export function InterviewChat() {
       </ScrollArea>
 
       {/* 输入区域 */}
-      <footer className="border-t bg-card p-4">
-        <div className="max-w-4xl mx-auto flex gap-2">
-          <Input
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={isStreaming ? "AI 正在回答..." : "输入消息..."}
-            disabled={sending || isStreaming}
-            className="flex-1"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || sending || isStreaming}
-          >
-            {sending || isStreaming ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
+      <footer className="border-t bg-card/50 backdrop-blur-sm p-4">
+        <div className="max-w-4xl mx-auto">
+          {/* 主输入容器 - 圆角卡片设计 */}
+          <div
+            className={cn(
+              'relative flex items-start gap-2 bg-background border rounded-2xl p-3 shadow-sm transition-all',
+              'focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary focus-within:shadow-md'
             )}
-          </Button>
+          >
+            {/* 录音按钮 - 圆形幽灵按钮 */}
+            <Button
+              variant={recordingState === 'recording' ? 'destructive' : 'ghost'}
+              size="icon"
+              onClick={handleRecordClick}
+              disabled={sending || isStreaming || isRecognizing}
+              className={cn(
+                'h-9 w-9 rounded-full flex-shrink-0 transition-all duration-200 mt-0.5',
+                recordingState === 'recording' && 'animate-pulse shadow-lg'
+              )}
+              title={recordingState === 'recording' ? '点击停止录音' : '点击开始录音'}
+            >
+              {recordingState === 'recording' ? (
+                <Square className="h-4 w-4 fill-current" />
+              ) : isRecognizing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mic className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              )}
+            </Button>
+
+            {/* 多行输入框 - 无边框设计，自动高度 */}
+            <Textarea
+              ref={textareaRef}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={isStreaming ? 'AI 正在回答...' : '输入消息...'}
+              disabled={sending || isStreaming}
+              className="flex-1 min-h-[24px] max-h-[120px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 py-1.5 px-0 text-base placeholder:text-muted-foreground/60 leading-relaxed overflow-y-auto"
+              rows={1}
+              style={{ height: '24px' }}
+            />
+
+            {/* 发送按钮 - 圆形主色按钮 */}
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || sending || isStreaming}
+              size="icon"
+              className={cn(
+                'h-9 w-9 rounded-full flex-shrink-0 transition-all duration-200 shadow-sm mt-0.5',
+                !inputMessage.trim() && 'opacity-50'
+              )}
+            >
+              {sending || isStreaming ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {/* 状态提示区域 */}
+          <div className="h-5 mt-2 flex items-center justify-center">
+            {/* 录音中提示 */}
+            {recordingState === 'recording' && (
+              <div className="flex items-center gap-2 text-sm text-destructive animate-in fade-in slide-in-from-bottom-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+                </span>
+                <span>录音中 {recordingDuration}s / 60s</span>
+              </div>
+            )}
+
+            {/* 语音识别中提示 */}
+            {isRecognizing && (
+              <div className="flex items-center gap-2 text-sm text-primary animate-in fade-in slide-in-from-bottom-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>语音识别中...</span>
+              </div>
+            )}
+
+            {/* 提示文字 - 仅在空闲时显示 */}
+            {recordingState !== 'recording' && !isRecognizing && !sending && !isStreaming && (
+              <span className="text-xs text-muted-foreground/60">
+                Shift + Enter 换行，Enter 发送
+              </span>
+            )}
+          </div>
         </div>
       </footer>
+
+      {/* 语音识别结果确认对话框 */}
+      <SimpleDialog
+        open={showRecognizedDialog}
+        onOpenChange={setShowRecognizedDialog}
+        title="语音识别结果"
+        description="请确认是否将识别结果添加到输入框"
+        footer={
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleCancelRecognizedText}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmRecognizedText}>确认添加</Button>
+          </div>
+        }
+      >
+        <div className="bg-muted p-4 rounded-lg">
+          <p className="text-sm whitespace-pre-wrap">{recognizedText}</p>
+        </div>
+      </SimpleDialog>
 
       {/* 完成面试对话框 */}
       <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>

@@ -12,6 +12,7 @@ from app.api.v1.interview import router as interview_router
 from app.api.v1.interview_evaluation import router as interview_evaluation_router
 from app.api.v1.interview_message import router as interview_message_router
 from app.api.v1.resume import router as resume_router
+from app.api.v1.speech import router as speech_router
 from app.api.v1.upload import router as upload_router
 from app.api.v1.users import router as users_router
 
@@ -25,5 +26,6 @@ router.include_router(interview_router)
 router.include_router(interview_message_router)
 router.include_router(interview_evaluation_router)
 router.include_router(dashboard_router)
+router.include_router(speech_router)
 
 __all__ = ["router"]

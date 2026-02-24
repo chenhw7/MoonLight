@@ -6,7 +6,7 @@
  */
 
 import React, { useRef, useState, useCallback } from 'react';
-import { User, Upload, X } from 'lucide-react';
+import { User, Upload } from 'lucide-react';
 import { Button } from './button';
 import { AvatarCropper } from './avatar-cropper';
 import { uploadAvatar } from '@/services/upload';
