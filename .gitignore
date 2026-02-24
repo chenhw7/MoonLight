@@ -68,3 +68,5 @@ backend/*.egg-info/
 backend/dist/
 backend/build/
 models/
+
+.trae/specs/

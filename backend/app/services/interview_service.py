@@ -27,6 +27,55 @@ logger = get_logger(__name__)
 class InterviewSessionService:
     """面试会话服务。"""
 
+    # 开场白模板，根据面试官风格定制
+    OPENING_TEMPLATES = {
+        "strict": """你好，我是{company_name}的面试官，负责{position_name}岗位的面试。
+
+本次面试分为以下几个环节：
+1. 自我介绍
+2. 技术问答
+3. 反问环节
+
+请开始你的自我介绍。""",
+        "gentle": """你好！欢迎来到{company_name}的面试，我是{position_name}岗位的面试官。
+
+今天的面试流程是这样的：
+1. 先请你做个自我介绍
+2. 然后我们会聊一些技术问题
+3. 最后你可以向我提问
+
+不用紧张，我们开始吧。请介绍一下你自己。""",
+        "pressure": """你好，我是{company_name}的面试官，{position_name}岗位。
+
+面试流程：自我介绍→技术问答→反问。
+
+时间有限，请直接开始自我介绍。""",
+    }
+
+    @staticmethod
+    def generate_opening_message(
+        company_name: str,
+        position_name: str,
+        interviewer_style: str,
+    ) -> str:
+        """生成开场白消息。
+
+        Args:
+            company_name: 公司名称
+            position_name: 岗位名称
+            interviewer_style: 面试官风格
+
+        Returns:
+            开场白内容
+        """
+        template = InterviewSessionService.OPENING_TEMPLATES.get(
+            interviewer_style, InterviewSessionService.OPENING_TEMPLATES["strict"]
+        )
+        return template.format(
+            company_name=company_name,
+            position_name=position_name,
+        )
+
     @staticmethod
     async def create(
         db: AsyncSession,
@@ -80,12 +129,36 @@ class InterviewSessionService:
         await db.commit()
         await db.refresh(session)
 
+        # 生成开场白消息
+        opening_content = InterviewSessionService.generate_opening_message(
+            company_name=session_data.company_name,
+            position_name=session_data.position_name,
+            interviewer_style=session_data.interviewer_style,
+        )
+
+        # 保存开场白消息
+        opening_message = InterviewMessage(
+            session_id=session.id,
+            role="ai",
+            content=opening_content,
+            round="opening",
+            meta_info={"is_opening": True},
+        )
+        db.add(opening_message)
+
+        # 开场白后直接切换到自我介绍轮次
+        session.current_round = "self_intro"
+
+        await db.commit()
+        await db.refresh(session)
+
         logger.info(
-            "Interview session created",
+            "Interview session created with opening message",
             extra={
                 "session_id": session.id,
                 "user_id": user_id,
                 "company": session.company_name,
+                "current_round": session.current_round,
             },
         )
 

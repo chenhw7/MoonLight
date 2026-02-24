@@ -114,8 +114,8 @@ export function InterviewChat() {
     // 重置高度以获取正确的 scrollHeight
     textarea.style.height = 'auto';
 
-    // 计算新高度（限制在 24px 到 120px 之间）
-    const newHeight = Math.min(Math.max(textarea.scrollHeight, 24), 120);
+    // 计算新高度（限制在 36px 到 120px 之间）
+    const newHeight = Math.min(Math.max(textarea.scrollHeight, 36), 120);
     textarea.style.height = `${newHeight}px`;
   }, []);
 
@@ -645,9 +645,9 @@ export function InterviewChat() {
               onKeyDown={handleKeyDown}
               placeholder={isStreaming ? 'AI 正在回答...' : '输入消息...'}
               disabled={sending || isStreaming}
-              className="flex-1 min-h-[24px] max-h-[120px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 py-1.5 px-0 text-base placeholder:text-muted-foreground/60 leading-relaxed overflow-y-auto"
+              className="flex-1 min-h-[36px] max-h-[120px] border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 py-2 px-0 text-base placeholder:text-muted-foreground/60 leading-normal overflow-hidden"
               rows={1}
-              style={{ height: '24px' }}
+              style={{ height: '36px' }}
             />
 
             {/* 发送按钮 - 圆形主色按钮 */}
