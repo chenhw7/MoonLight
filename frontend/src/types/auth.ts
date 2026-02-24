@@ -6,7 +6,8 @@ export interface User {
   id: number;
   email: string;
   username: string;
-  createdAt: string;
+  created_at: string;
+  avatar?: string;
 }
 
 export interface LoginRequest {

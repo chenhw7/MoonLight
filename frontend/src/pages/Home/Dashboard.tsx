@@ -187,14 +187,14 @@ export function Dashboard() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/resume/${resume.id}/edit`)}
+                          onClick={() => navigate(`/resume/edit/${resume.id}`)}
                         >
                           编辑
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/resume/${resume.id}`)}
+                          onClick={() => navigate(`/resume/view/${resume.id}`)}
                         >
                           预览
                         </Button>

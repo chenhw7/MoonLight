@@ -193,7 +193,10 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         </div>
       </div>
       <div className="space-y-2">
-        <Label>描述（可选）</Label>
+        <Label>
+          描述（可选）{' '}
+          <span className="text-xs text-muted-foreground font-normal">（支持 **加粗**）</span>
+        </Label>
         <Textarea
           placeholder="补充说明"
           rows={2}
@@ -243,7 +246,10 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         />
       </div>
       <div className="space-y-2">
-        <Label>描述（可选）</Label>
+        <Label>
+          描述（可选）{' '}
+          <span className="text-xs text-muted-foreground font-normal">（支持 **加粗**）</span>
+        </Label>
         <Textarea
           placeholder="作品说明"
           rows={2}

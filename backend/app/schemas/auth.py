@@ -4,7 +4,7 @@
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -94,13 +94,23 @@ class UserResponse(UserBase):
         id: 用户 ID
         email: 邮箱地址
         username: 用户名
+        avatar: 头像 URL
         is_active: 是否激活
         created_at: 创建时间
     """
 
     id: int
+    avatar: Optional[str] = None
     is_active: bool
-    created_at: datetime
+    created_at: Union[str, datetime]
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def validate_created_at(cls, v: Union[str, datetime]) -> str:
+        """将 datetime 转换为 ISO 格式字符串。"""
+        if isinstance(v, datetime):
+            return v.isoformat()
+        return v
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -109,8 +119,9 @@ class UserResponse(UserBase):
                 "id": 1,
                 "email": "user@example.com",
                 "username": "john_doe",
+                "avatar": None,
                 "is_active": True,
-                "created_at": "2024-01-01T00:00:00Z",
+                "created_at": "2024-01-01T00:00:00",
             }
         },
     )

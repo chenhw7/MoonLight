@@ -6,3 +6,4 @@
 
 export { default as ResumeCreate } from './ResumeCreate';
 export { ResumeList } from './ResumeList';
+export { default as ResumeView } from './ResumeView';

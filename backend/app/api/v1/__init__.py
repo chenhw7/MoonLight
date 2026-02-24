@@ -13,9 +13,11 @@ from app.api.v1.interview_evaluation import router as interview_evaluation_route
 from app.api.v1.interview_message import router as interview_message_router
 from app.api.v1.resume import router as resume_router
 from app.api.v1.upload import router as upload_router
+from app.api.v1.users import router as users_router
 
 router = APIRouter(prefix="/v1")
 router.include_router(auth_router)
+router.include_router(users_router)
 router.include_router(resume_router)
 router.include_router(upload_router)
 router.include_router(ai_config_router)

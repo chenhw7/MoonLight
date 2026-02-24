@@ -168,7 +168,10 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = ({
 
         {/* 主要成就 */}
         <div className="space-y-2">
-          <Label>主要成就</Label>
+          <Label>
+            主要成就{' '}
+            <span className="text-xs text-muted-foreground font-normal">（支持 **加粗**）</span>
+          </Label>
           <Textarea
             placeholder="列举核心业绩，可量化结果"
             rows={3}
@@ -181,7 +184,10 @@ const WorkExperienceForm: React.FC<WorkExperienceFormProps> = ({
 
         {/* 工作描述 */}
         <div className="space-y-2">
-          <Label>工作描述</Label>
+          <Label>
+            工作描述{' '}
+            <span className="text-xs text-muted-foreground font-normal">（支持 **加粗**）</span>
+          </Label>
           <Textarea
             placeholder="描述您的工作内容、职责和成果（建议20字以上）"
             rows={5}

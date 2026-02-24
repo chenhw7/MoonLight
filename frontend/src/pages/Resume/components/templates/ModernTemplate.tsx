@@ -7,6 +7,7 @@
 
 import React from 'react';
 import type { ResumeFormData } from '@/types/resume';
+import { parseBoldText } from '@/utils/textFormat';
 
 interface ModernTemplateProps {
   data: ResumeFormData;
@@ -318,7 +319,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   overflow: 'hidden',
                 }}
               >
-                {work.description}
+                {parseBoldText(work.description)}
               </p>
 
               {/* 主要成就 */}
@@ -326,7 +327,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 <div style={{ marginTop: '4px', fontSize: '13px', color: '#000000' }}>
                   <span style={{ fontWeight: 'bold' }}>主要成就：</span>
                   <p style={{ margin: 0, whiteSpace: 'pre-wrap', display: 'inline' }}>
-                    {work.achievements}
+                    {parseBoldText(work.achievements)}
                   </p>
                 </div>
               )}
@@ -393,7 +394,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   overflow: 'hidden',
                 }}
               >
-                {project.description}
+                {parseBoldText(project.description)}
               </p>
             </div>
           ))}
@@ -449,7 +450,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 </div>
                 {award.description && (
                   <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
-                    {award.description}
+                    {parseBoldText(award.description)}
                   </div>
                 )}
               </li>
@@ -475,7 +476,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 </div>
                 {portfolio.description && (
                   <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
-                    {portfolio.description}
+                    {parseBoldText(portfolio.description)}
                   </div>
                 )}
               </li>

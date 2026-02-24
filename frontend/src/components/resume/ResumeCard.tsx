@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { Edit, Copy, Trash2, FileText, User, MessageSquare } from 'lucide-react';
+import { Edit, Copy, Trash2, FileText, User, MessageSquare, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,10 @@ export function ResumeCard({ resume, onCopy, onDelete, showActions = true }: Res
 
   const handleEdit = () => {
     navigate(`/resume/edit/${resume.id}`);
+  };
+
+  const handlePreview = () => {
+    navigate(`/resume/view/${resume.id}`);
   };
 
   const handleInterview = () => {
@@ -75,6 +79,9 @@ export function ResumeCard({ resume, onCopy, onDelete, showActions = true }: Res
         <CardFooter className="pt-0 flex justify-end gap-2">
           <Button variant="ghost" size="icon" onClick={handleInterview} title="模拟面试">
             <MessageSquare className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handlePreview} title="预览">
+            <Eye className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={handleEdit} title="编辑">
             <Edit className="h-4 w-4" />

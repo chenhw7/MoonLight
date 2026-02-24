@@ -5,7 +5,7 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
-import { Moon, ChevronDown, LogOut, User, Settings, FileText, Plus, List, MessageSquare, Bot, History, Settings2 } from 'lucide-react';
+import { Moon, ChevronDown, LogOut, User, Settings, Plus, List, MessageSquare, Bot, History, Settings2 } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { createLogger } from '@/utils/logger';
@@ -19,8 +19,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: '项目', path: '/projects' },
-  { label: '团队', path: '/team' },
+  // 暂时移除未实现的功能入口
+  // { label: '项目', path: '/projects' },
+  // { label: '团队', path: '/team' },
 ];
 
 export function Header() {
@@ -315,7 +316,7 @@ export function Header() {
                   </div>
 
                   <Link
-                    to="/settings"
+                    to="/profile"
                     onClick={handleCloseMenu}
                     className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none"
                     role="menuitem"

@@ -4,9 +4,9 @@
 """
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -50,6 +50,9 @@ class User(Base):
     )
     password_hash: Mapped[str] = mapped_column(
         String(255), nullable=False
+    )
+    avatar: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True
     )
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False

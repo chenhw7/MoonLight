@@ -37,7 +37,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'testuser',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
       const accessToken = 'fake-access-token'
       const refreshToken = 'fake-refresh-token'
@@ -59,7 +59,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'testuser',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
 
       // When: 设置认证
@@ -78,7 +78,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'testuser',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
       useAuthStore.getState().setAuth(mockUser, 'token1', 'token2')
 
@@ -99,7 +99,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'testuser',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
       useAuthStore.getState().setAuth(mockUser, 'token1', 'token2')
 
@@ -119,7 +119,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'oldname',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
       useAuthStore.getState().setAuth(mockUser, 'token1', 'token2')
 
@@ -153,7 +153,7 @@ describe('AuthStore', () => {
         id: 1,
         email: 'test@example.com',
         username: 'testuser',
-        createdAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
       }
       useAuthStore.getState().setAuth(mockUser, 'old-token', 'refresh-token')
 

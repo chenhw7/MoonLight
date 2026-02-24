@@ -16,9 +16,10 @@ import { ForgotPasswordPage } from '@/pages/ForgotPassword';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/Home';
-import { ResumeCreate, ResumeList } from '@/pages/Resume';
+import { ResumeCreate, ResumeList, ResumeView } from '@/pages/Resume';
 import { AIConfigForm } from '@/pages/AIConfig';
 import { InterviewConfig, InterviewChat, InterviewEvaluation, InterviewList } from '@/pages/Interview';
+import { ProfilePage } from '@/pages/Profile/ProfilePage';
 
 const logger = createLogger('App');
 
@@ -173,6 +174,14 @@ function App() {
             }
           />
           <Route
+            path="/resume/view/:id"
+            element={
+              <ProtectedRoute>
+                <ResumeView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/ai-config"
             element={
               <ProtectedRoute>
@@ -209,6 +218,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <InterviewList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

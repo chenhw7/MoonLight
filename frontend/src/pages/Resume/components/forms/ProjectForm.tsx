@@ -159,7 +159,10 @@ const ProjectForm: React.FC = () => {
 
         {/* 项目描述 */}
         <div className="space-y-2">
-          <Label>项目描述</Label>
+          <Label>
+            项目描述{' '}
+            <span className="text-xs text-muted-foreground font-normal">（支持 **加粗**）</span>
+          </Label>
           <Textarea
             placeholder="描述项目背景、您的职责、技术栈和项目成果（建议20字以上）"
             rows={5}
