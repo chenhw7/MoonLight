@@ -187,11 +187,11 @@ def _configure_stdlib_logging(log_level: int, settings: Any) -> None:
         log_level: 日志级别
         settings: 应用配置
     """
-    # 控制台处理器 - 人类可读格式
+    # 控制台处理器 - 人类可读格式，带颜色
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
 
-    # 文件处理器 - JSON 格式（生产环境）或纯文本（开发环境）
+    # 文件处理器 - 纯文本格式，无颜色
     log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, "backend.log")
@@ -204,6 +204,13 @@ def _configure_stdlib_logging(log_level: int, settings: Any) -> None:
         encoding="utf-8",
     )
     file_handler.setLevel(log_level)
+
+    # 文件处理器使用纯文本格式，无颜色
+    file_formatter = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S"
+    )
+    file_handler.setFormatter(file_formatter)
 
     # 配置 SQLAlchemy 日志
     sqlalchemy_logger = logging.getLogger("sqlalchemy.engine")
@@ -260,9 +267,10 @@ def _configure_structlog(settings: Any) -> None:
             JSONRenderer(),
         ]
     else:
-        # 开发环境：控制台格式，带颜色
+        # 开发环境：控制台格式，不带颜色
+        # 使用 colors=False 确保文件日志中不包含 ANSI 转义序列
         processors = shared_processors + [
-            structlog.dev.ConsoleRenderer(colors=True),
+            structlog.dev.ConsoleRenderer(colors=False),
         ]
 
     structlog.configure(
