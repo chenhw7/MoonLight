@@ -340,32 +340,30 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
         />
       </section>
 
-      {/* 语言能力 - 校招默认显示 */}
-      {(resumeMode === 'campus' || languages.length > 0) && (
-        <section>
-          <h3 className="text-lg font-semibold mb-4">语言能力</h3>
-          <Controller
-            name="languages"
-            control={control}
-            render={({ field }) => (
-              <DynamicFormList
-                items={field.value || []}
-                onChange={(items) => field.onChange(items)}
-                renderItem={renderLanguageItem}
-                getItemId={(_, index) => `lang-${index}`}
-                getItemTitle={(item, index) =>
-                  LANGUAGE_OPTIONS.find((l) => l.value === item.language)
-                    ?.label || `语言 ${index + 1}`
-                }
-                addButtonText="+ 添加语言"
-                emptyText="暂无语言能力，点击添加"
-                onAdd={handleAddLanguage}
-                minItems={0}
-              />
-            )}
-          />
-        </section>
-      )}
+      {/* 语言能力 */}
+      <section>
+        <h3 className="text-lg font-semibold mb-4">语言能力</h3>
+        <Controller
+          name="languages"
+          control={control}
+          render={({ field }) => (
+            <DynamicFormList
+              items={field.value || []}
+              onChange={(items) => field.onChange(items)}
+              renderItem={renderLanguageItem}
+              getItemId={(_, index) => `lang-${index}`}
+              getItemTitle={(item, index) =>
+                LANGUAGE_OPTIONS.find((l) => l.value === item.language)
+                  ?.label || `语言 ${index + 1}`
+              }
+              addButtonText="+ 添加语言"
+              emptyText="暂无语言能力，点击添加"
+              onAdd={handleAddLanguage}
+              minItems={0}
+            />
+          )}
+        />
+      </section>
 
       {/* 获奖经历 */}
       <section>

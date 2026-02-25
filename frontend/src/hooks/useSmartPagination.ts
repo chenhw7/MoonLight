@@ -146,11 +146,8 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
             currentPartChildren = [];
             currentPartHeight = wrapperOverhead; // 新页部分不需要 block 的 margin-top
             
-            // 如果存在标题，且当前不是处理孤儿标题的情况，将标题复制到新页
-            if (headerHTML && !onlyHasTitle) {
-              currentPartChildren.push(headerHTML);
-              currentPartHeight += headerHeight;
-            }
+            // 简历场景：跨页时不重复显示 section 标题
+            // 注释掉原有逻辑：if (headerHTML && !onlyHasTitle) { currentPartChildren.push(headerHTML); ... }
 
             i--; // 回退，重新处理当前子元素
           }

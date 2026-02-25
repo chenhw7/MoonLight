@@ -67,6 +67,12 @@ class Settings(BaseSettings):
     email_password: str = ""  # QQ邮箱授权码
     email_sender: str = ""
 
+    # Logging
+    log_level: str = "info"  # debug/info/warning/error/critical
+    log_sqlalchemy_internal: bool = False  # 是否输出 SQLAlchemy 内部查询（pg_catalog等）
+    log_max_bytes: int = 10 * 1024 * 1024  # 单个日志文件最大大小（10MB）
+    log_backup_count: int = 5  # 日志文件备份数量
+
     @property
     def is_development(self) -> bool:
         """检查是否为开发环境。"""

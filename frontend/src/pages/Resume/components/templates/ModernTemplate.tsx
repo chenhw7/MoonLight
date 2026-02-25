@@ -65,6 +65,8 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
+        breakAfter: 'avoid',
+        pageBreakAfter: 'avoid',
       }}
     >
       {/* 双层三角形容器 */}
@@ -272,7 +274,17 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle(data.resume_type === 'campus' ? '实习经历' : '工作经历')}
           {data.work_experiences.map((work, index) => (
-            <div key={index} style={{ marginBottom: '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
+            <div key={index} style={{ marginBottom: index < data.work_experiences.length - 1 ? '16px' : '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
+              {index > 0 && (
+                <div 
+                  className="experience-divider"
+                  style={{ 
+                    borderBottom: '1px solid #e5e7eb', 
+                    marginBottom: '16px', 
+                    width: '100%',
+                  }} 
+                />
+              )}
               {/* 第一行：公司 · 职位 · 部门 | 时间 | 地点 */}
               <div
                 style={{
@@ -298,7 +310,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               
               {/* 技术栈 */}
               {work.tech_stack && (
-                <div style={{ fontSize: '12px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '12px', color: '#000000', marginTop: '2px' }}>
                   <span style={{ fontWeight: 'bold' }}>技术栈：</span>{work.tech_stack}
                 </div>
               )}
@@ -341,7 +353,17 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
           {renderSectionTitle('项目经历')}
           {data.projects.map((project, index) => (
-            <div key={index} style={{ marginBottom: '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
+            <div key={index} style={{ marginBottom: index < data.projects.length - 1 ? '16px' : '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
+              {index > 0 && (
+                <div 
+                  className="experience-divider"
+                  style={{ 
+                    borderBottom: '1px solid #e5e7eb', 
+                    marginBottom: '16px', 
+                    width: '100%',
+                  }} 
+                />
+              )}
               {/* 第一行：项目名 · 角色 | 时间 */}
               <div
                 style={{
@@ -367,7 +389,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
               {/* 技术栈 */}
               {project.tech_stack && (
-                <div style={{ fontSize: '12px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '12px', color: '#000000', marginTop: '2px' }}>
                   <span style={{ fontWeight: 'bold' }}>技术栈：</span>{project.tech_stack}
                 </div>
               )}
@@ -401,6 +423,54 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         </section>
       )}
 
+      {/* 作品展示 */}
+      {data.portfolios.length > 0 && (
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
+          {renderSectionTitle('作品展示')}
+          <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
+            {data.portfolios.map((portfolio, index) => (
+              <div key={index} style={{ marginBottom: '6px', wordWrap: 'break-word', wordBreak: 'break-all' }}>
+                <span style={{ fontWeight: 'bold' }}>{portfolio.work_name}</span>
+                {portfolio.work_link && (
+                  <span style={{ color: '#000000', marginLeft: '8px' }}>
+                    {portfolio.work_link}
+                  </span>
+                )}
+                {portfolio.description && (
+                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
+                    {parseBoldText(portfolio.description)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 获奖经历 */}
+      {data.awards.length > 0 && (
+        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
+          {renderSectionTitle('获奖经历')}
+          <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
+            {data.awards.map((award, index) => (
+              <div key={index} style={{ marginBottom: '6px' }}>
+                <span style={{ fontWeight: 'bold' }}>{award.award_name}</span>
+                {award.award_date && (
+                  <span style={{ color: '#000000', marginLeft: '8px' }}>
+                    ({formatChineseDate(award.award_date)})
+                  </span>
+                )}
+                {award.description && (
+                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
+                    {parseBoldText(award.description)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* 技能特长 */}
       {data.skills.length > 0 && (
         <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
@@ -430,58 +500,6 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               </span>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* 获奖经历 */}
-      {data.awards.length > 0 && (
-        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
-          {renderSectionTitle('获奖经历')}
-          <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
-            {data.awards.map((award, index) => (
-              <li key={index} style={{ marginBottom: '6px', lineHeight: '1.6' }}>
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>{award.award_name}</span>
-                  {award.award_date && (
-                    <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                      ({formatChineseDate(award.award_date)})
-                    </span>
-                  )}
-                </div>
-                {award.description && (
-                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
-                    {parseBoldText(award.description)}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* 作品展示 */}
-      {data.portfolios.length > 0 && (
-        <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
-          {renderSectionTitle('作品展示')}
-          <ul style={{ margin: '0', paddingLeft: '16px', color: '#000000' }}>
-            {data.portfolios.map((portfolio, index) => (
-              <li key={index} style={{ marginBottom: '6px', lineHeight: '1.6', wordWrap: 'break-word', wordBreak: 'break-all' }}>
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>{portfolio.work_name}</span>
-                  {portfolio.work_link && (
-                    <span style={{ color: '#000000', marginLeft: '8px', fontSize: '13px' }}>
-                      {portfolio.work_link}
-                    </span>
-                  )}
-                </div>
-                {portfolio.description && (
-                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
-                    {parseBoldText(portfolio.description)}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
         </section>
       )}
 

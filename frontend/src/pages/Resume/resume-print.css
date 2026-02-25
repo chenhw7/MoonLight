@@ -95,6 +95,12 @@
     position: static !important;
   }
 
+  /* ===== 跨页时隐藏经历前的分隔线 ===== */
+  /* 当经历跨页时，新页的第一个经历前的分隔线应该隐藏 */
+  body.printing-resume .page-container > div:first-child .experience-divider:first-child {
+    display: none !important;
+  }
+
   /* ===== 颜色精确打印 ===== */
   body.printing-resume * {
     -webkit-print-color-adjust: exact !important;
