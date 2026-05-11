@@ -38,7 +38,7 @@ npm install date-fns
 - 简历基础类型 (Resume, ResumeFormData)
 - 教育经历类型 (Education)
 - 工作/实习经历类型 (WorkExperience)
-- 项目经历类型 (Project)
+- 校园经历类型 (Project)
 - 技能类型 (Skill)
 - 语言能力类型 (Language)
 - 获奖经历类型 (Award)
@@ -97,7 +97,7 @@ npm install date-fns
 1. `BasicInfoForm.tsx` - 基本信息表单
 2. `EducationForm.tsx` - 教育经历表单（可添加多条）
 3. `WorkExperienceForm.tsx` - 工作/实习经历表单
-4. `ProjectForm.tsx` - 项目经历表单
+4. `ProjectForm.tsx` - 校园经历表单
 5. `SkillsForm.tsx` - 技能与其他表单
 
 **通用组件**:
@@ -214,7 +214,7 @@ frontend/src/
 │       │       ├── BasicInfoForm.tsx # 基本信息
 │       │       ├── EducationForm.tsx # 教育经历
 │       │       ├── WorkExperienceForm.tsx # 工作经历
-│       │       ├── ProjectForm.tsx   # 项目经历
+│       │       ├── ProjectForm.tsx   # 校园经历
 │       │       └── SkillsForm.tsx    # 技能与其他
 │       └── hooks/
 │           └── useResumeForm.ts      # 表单逻辑Hook

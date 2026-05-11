@@ -65,7 +65,7 @@ export interface WorkExperience {
   is_internship?: boolean;
 }
 
-/** 项目经历 */
+/** 校园经历 */
 export interface Project {
   id?: number;
   project_name: string;
@@ -232,7 +232,7 @@ export const workExperienceSchema = z.object({
   is_internship: z.boolean().optional(),
 });
 
-/** 项目经历验证 Schema */
+/** 校园经历验证 Schema */
 export const projectSchema = z.object({
   id: z.number().optional(),
   project_name: z.string().min(1, '请输入项目名称').max(100, '项目名称过长'),
@@ -377,7 +377,7 @@ export const LANGUAGE_OPTIONS: { value: LanguageType; label: string }[] = [
   { value: 'german', label: '德语' },
   { value: 'spanish', label: '西班牙语' },
   { value: 'korean', label: '韩语' },
-  { value: 'other', label: '其他' },
+  { value: 'other', label: '粤语' },
 ];
 
 /** 语言熟练程度选项 */
@@ -411,7 +411,7 @@ export const TABS_CONFIG: { value: TabType; label: string; icon: string }[] = [
   { value: 'basic', label: '基本信息', icon: 'User' },
   { value: 'education', label: '教育经历', icon: 'GraduationCap' },
   { value: 'work', label: '工作/实习', icon: 'Briefcase' },
-  { value: 'project', label: '项目经历', icon: 'FolderGit' },
+  { value: 'project', label: '校园经历', icon: 'FolderGit' },
   { value: 'skills', label: '技能与其他', icon: 'Sparkles' },
 ];
 

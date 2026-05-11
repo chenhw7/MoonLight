@@ -195,7 +195,7 @@ export const RECRUITMENT_TYPE_OPTIONS: { value: RecruitmentType; label: string }
 export const INTERVIEW_MODE_OPTIONS: Record<RecruitmentType, { value: InterviewMode; label: string; description: string }[]> = {
   campus: [
     { value: 'basic_knowledge', label: '基础知识问答', description: '重点考察算法、数据结构、计算机网络等基础知识' },
-    { value: 'project_deep_dive', label: '项目/实习深挖', description: '深入挖掘项目经历和实习经历' },
+    { value: 'project_deep_dive', label: '项目/实习深挖', description: '深入挖掘校园经历和实习经历' },
     { value: 'coding', label: '编程题', description: '考察编程能力和算法实现' },
   ],
   social: [

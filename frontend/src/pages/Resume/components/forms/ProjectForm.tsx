@@ -1,7 +1,7 @@
 /**
- * 项目经历表单组件
+ * 校园经历表单组件
  *
- * 支持添加多条项目经历记录
+ * 支持添加多条校园经历记录
  */
 
 import React from 'react';
@@ -14,14 +14,14 @@ import DynamicFormList from '../DynamicFormList';
 import type { ResumeFormData, Project } from '@/types/resume';
 
 /**
- * 项目经历表单
+ * 校园经历表单
  */
 const ProjectForm: React.FC = () => {
   const { control, watch, setValue } = useFormContext<ResumeFormData>();
   const projects = watch('projects') || [];
 
   /**
-   * 添加项目经历
+   * 添加校园经历
    */
   const handleAddProject = () => {
     const newProject: Project = {
@@ -36,7 +36,7 @@ const ProjectForm: React.FC = () => {
   };
 
   /**
-   * 更新项目经历
+   * 更新校园经历
    */
   const handleUpdateProject = (index: number, data: Partial<Project>) => {
     const newProjects = [...projects];
@@ -45,7 +45,7 @@ const ProjectForm: React.FC = () => {
   };
 
   /**
-   * 渲染项目经历表单项
+   * 渲染校园经历表单项
    */
   const renderProjectItem = (project: Project, index: number) => {
     return (
@@ -195,10 +195,10 @@ const ProjectForm: React.FC = () => {
             renderItem={renderProjectItem}
             getItemId={(_, index) => `project-${index}`}
             getItemTitle={(item, index) =>
-              item.project_name || `项目经历 ${index + 1}`
+              item.project_name || `校园经历 ${index + 1}`
             }
-            addButtonText="+ 添加项目经历"
-            emptyText="暂无项目经历，点击添加"
+            addButtonText="+ 添加校园经历"
+            emptyText="暂无校园经历，点击添加"
             onAdd={handleAddProject}
             minItems={0}
           />

@@ -401,13 +401,13 @@ async def delete_work_experience(
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())
 
 
-# ==================== 项目经历接口 ====================
+# ==================== 校园经历接口 ====================
 
 @router.post(
     "/{resume_id}/projects",
     response_model=ResponseModel[ProjectResponse],
     status_code=status.HTTP_201_CREATED,
-    summary="添加项目经历",
+    summary="添加校园经历",
 )
 async def add_project(
     resume_id: int,
@@ -415,7 +415,7 @@ async def add_project(
     current_user: User = Depends(get_current_user),
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ProjectResponse]:
-    """添加项目经历。"""
+    """添加校园经历。"""
     logger.info("API: add_project", resume_id=resume_id)
 
     try:
@@ -430,7 +430,7 @@ async def add_project(
 @router.put(
     "/{resume_id}/projects/{proj_id}",
     response_model=ResponseModel[ProjectResponse],
-    summary="更新项目经历",
+    summary="更新校园经历",
 )
 async def update_project(
     resume_id: int,
@@ -439,7 +439,7 @@ async def update_project(
     current_user: User = Depends(get_current_user),
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ProjectResponse]:
-    """更新项目经历。"""
+    """更新校园经历。"""
     logger.info("API: update_project", resume_id=resume_id, proj_id=proj_id)
 
     try:
@@ -456,7 +456,7 @@ async def update_project(
 @router.delete(
     "/{resume_id}/projects/{proj_id}",
     response_model=ResponseModel,
-    summary="删除项目经历",
+    summary="删除校园经历",
 )
 async def delete_project(
     resume_id: int,
@@ -464,7 +464,7 @@ async def delete_project(
     current_user: User = Depends(get_current_user),
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel:
-    """删除项目经历。"""
+    """删除校园经历。"""
     logger.info("API: delete_project", resume_id=resume_id, proj_id=proj_id)
 
     try:

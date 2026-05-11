@@ -159,7 +159,7 @@ class WorkExperience(Base):
 
 
 class Project(Base):
-    """项目经历模型。"""
+    """校园经历模型。"""
 
     __tablename__ = "projects"
 
@@ -405,10 +405,10 @@ class WorkExperienceResponse(WorkExperienceBase):
     id: int
 
 
-# ==================== 项目经历Schema ====================
+# ==================== 校园经历Schema ====================
 
 class ProjectBase(BaseModel):
-    """项目经历基础模型。"""
+    """校园经历基础模型。"""
 
     project_name: str = Field(..., min_length=1, max_length=100)
     role: str = Field(..., min_length=1, max_length=100)
@@ -420,13 +420,13 @@ class ProjectBase(BaseModel):
 
 
 class ProjectCreate(ProjectBase):
-    """创建项目经历请求模型。"""
+    """创建校园经历请求模型。"""
 
     pass
 
 
 class ProjectUpdate(ProjectBase):
-    """更新项目经历请求模型。"""
+    """更新校园经历请求模型。"""
 
     project_name: Optional[str] = Field(None, min_length=1, max_length=100)
     role: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -435,7 +435,7 @@ class ProjectUpdate(ProjectBase):
 
 
 class ProjectResponse(ProjectBase):
-    """项目经历响应模型。"""
+    """校园经历响应模型。"""
 
     id: int
 
@@ -1037,7 +1037,7 @@ class ResumeService:
             )
             self.db.add(new_exp)
 
-        # 复制项目经历
+        # 复制校园经历
         for proj in original.projects:
             new_proj = Project(
                 resume_id=new_resume.id,
@@ -1216,12 +1216,12 @@ class ResumeService:
         await self.db.delete(exp)
         await self.db.commit()
 
-    # ==================== 项目经历管理 ====================
+    # ==================== 校园经历管理 ====================
 
     async def add_project(
         self, resume_id: int, user_id: int, data: ProjectCreate
     ) -> Project:
-        """添加项目经历。"""
+        """添加校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         project = Project(resume_id=resume_id, **data.model_dump())
@@ -1233,7 +1233,7 @@ class ResumeService:
     async def update_project(
         self, resume_id: int, proj_id: int, user_id: int, data: ProjectUpdate
     ) -> Project:
-        """更新项目经历。"""
+        """更新校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         query = select(Project).where(
@@ -1254,7 +1254,7 @@ class ResumeService:
         return project
 
     async def delete_project(self, resume_id: int, proj_id: int, user_id: int) -> None:
-        """删除项目经历。"""
+        """删除校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         query = select(Project).where(
@@ -1926,13 +1926,13 @@ async def delete_work_experience(
         raise HTTPException(status_code=e.status_code, detail=e.to_dict())
 
 
-# ==================== 项目经历接口 ====================
+# ==================== 校园经历接口 ====================
 
 @router.post(
     "/{resume_id}/projects",
     response_model=ResponseModel[ProjectResponse],
     status_code=status.HTTP_201_CREATED,
-    summary="添加项目经历",
+    summary="添加校园经历",
 )
 async def add_project(
     resume_id: int,
@@ -1940,7 +1940,7 @@ async def add_project(
     current_user: User = Depends(get_current_user),
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ProjectResponse]:
-    """添加项目经历。"""
+    """添加校园经历。"""
     logger.info("API: add_project", resume_id=resume_id)
 
     try:
@@ -1955,7 +1955,7 @@ async def add_project(
 @router.put(
     "/{resume_id}/projects/{proj_id}",
     response_model=ResponseModel[ProjectResponse],
-    summary="更新项目经历",
+    summary="更新校园经历",
 )
 async def update_project(
     resume_id: int,
@@ -1964,5 +1964,5 @@ async def update_project(
     current_user: User = Depends(get_current_user),
     resume_service: ResumeService = Depends(get_resume_service),
 ) -> ResponseModel[ProjectResponse]:
-    """更新项目经历。"""
+    """更新校园经历。"""
     logger.info("API: update_project", resume_id=resume_id, proj_id

@@ -316,9 +316,9 @@ const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
 
   return (
     <div className="space-y-8">
-      {/* 技能特长 */}
+      {/* 爱好特长 */}
       <section>
-        <h3 className="text-lg font-semibold mb-4">技能特长</h3>
+        <h3 className="text-lg font-semibold mb-4">爱好特长</h3>
         <Controller
           name="skills"
           control={control}

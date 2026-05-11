@@ -22,12 +22,16 @@ from app.core.exceptions import AppException
 from app.core.logging import configure_logging, get_logger, get_request_logger
 from app.schemas.common import ErrorResponse
 
+# 记录启动开始时间
+_startup_start_time = time.time()
+
 # 配置日志
 configure_logging()
 logger = get_logger(__name__)
 
 # 获取配置
 settings = get_settings()
+logger.info("配置加载完成", elapsed=round(time.time() - _startup_start_time, 3))
 
 
 @asynccontextmanager
@@ -54,7 +58,12 @@ async def lifespan(app: FastAPI):
     )
 
     # 初始化数据库
+    db_start = time.time()
     await init_db()
+    logger.info("数据库初始化完成", elapsed=round(time.time() - db_start, 3))
+
+    total_startup = round(time.time() - _startup_start_time, 3)
+    logger.info("应用启动完成", total_startup_seconds=total_startup)
 
     yield
 

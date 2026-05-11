@@ -233,11 +233,11 @@ class WorkExperienceResponse(BaseModel):
 
 
 # ============================================================================
-# 项目经历Schema
+# 校园经历Schema
 # ============================================================================
 
 class ProjectBase(BaseModel):
-    """项目经历基础模型。"""
+    """校园经历基础模型。"""
 
     project_name: str = Field(default="", max_length=100)
     role: str = Field(default="", max_length=100)
@@ -257,12 +257,12 @@ class ProjectBase(BaseModel):
 
 
 class ProjectCreate(ProjectBase):
-    """创建项目经历请求模型。"""
+    """创建校园经历请求模型。"""
     pass
 
 
 class ProjectUpdate(BaseModel):
-    """更新项目经历请求模型。"""
+    """更新校园经历请求模型。"""
 
     project_name: Optional[str] = Field(None, min_length=1, max_length=100)
     role: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -282,7 +282,7 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectResponse(BaseModel):
-    """项目经历响应模型。"""
+    """校园经历响应模型。"""
 
     model_config = ConfigDict(from_attributes=True)
 

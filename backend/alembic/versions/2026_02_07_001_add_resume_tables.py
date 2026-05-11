@@ -85,7 +85,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_work_experiences_resume_id'), 'work_experiences', ['resume_id'], unique=False)
     
-    # 创建项目经历表
+    # 创建校园经历表
     op.create_table(
         'projects',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),

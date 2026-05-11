@@ -235,9 +235,9 @@ class ResumeService:
                 sort_order=getattr(edu, 'sort_order', i),
             ))
 
-        # 工作/实习经历 — 至少需要公司名
+        # 工作/实习经历 — 至少需要公司名或工作描述
         for i, exp in enumerate(data.work_experiences or []):
-            if not exp.company_name:
+            if not exp.company_name and not exp.description:
                 continue
             exp_type = "internship" if getattr(exp, 'is_internship', False) else "work"
             self.db.add(WorkExperience(
@@ -246,7 +246,7 @@ class ResumeService:
                 company_name=exp.company_name,
                 position=exp.position or "",
                 department=exp.department,
-                start_date=exp.start_date or date.today(),
+                start_date=exp.start_date,
                 end_date=exp.end_date,
                 description=exp.description or "",
                 achievements=exp.achievements,
@@ -255,7 +255,7 @@ class ResumeService:
                 sort_order=getattr(exp, 'sort_order', i),
             ))
 
-        # 项目经历 — 至少需要项目名
+        # 校园经历 — 至少需要项目名
         for i, proj in enumerate(data.projects or []):
             if not proj.project_name:
                 continue
@@ -264,7 +264,7 @@ class ResumeService:
                 project_name=proj.project_name,
                 role=proj.role or "",
                 role_detail=proj.role_detail,
-                start_date=proj.start_date or date.today(),
+                start_date=proj.start_date,
                 end_date=proj.end_date,
                 project_link=proj.project_link,
                 description=proj.description or "",
@@ -440,7 +440,7 @@ class ResumeService:
             )
             self.db.add(new_exp)
 
-        # 复制项目经历
+        # 复制校园经历
         for proj in original.projects:
             new_proj = Project(
                 resume_id=new_resume.id,
@@ -619,12 +619,12 @@ class ResumeService:
         await self.db.delete(exp)
         await self.db.commit()
 
-    # ==================== 项目经历管理 ====================
+    # ==================== 校园经历管理 ====================
 
     async def add_project(
         self, resume_id: int, user_id: int, data: ProjectCreate
     ) -> Project:
-        """添加项目经历。"""
+        """添加校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         project = Project(resume_id=resume_id, **data.model_dump())
@@ -636,7 +636,7 @@ class ResumeService:
     async def update_project(
         self, resume_id: int, proj_id: int, user_id: int, data: ProjectUpdate
     ) -> Project:
-        """更新项目经历。"""
+        """更新校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         query = select(Project).where(
@@ -657,7 +657,7 @@ class ResumeService:
         return project
 
     async def delete_project(self, resume_id: int, proj_id: int, user_id: int) -> None:
-        """删除项目经历。"""
+        """删除校园经历。"""
         await self.get_resume_detail(resume_id, user_id)
 
         query = select(Project).where(

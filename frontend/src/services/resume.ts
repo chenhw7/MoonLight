@@ -411,15 +411,15 @@ export async function deleteWorkExperience(
 }
 
 // ============================================================================
-// 项目经历
+// 校园经历
 // ============================================================================
 
 /**
- * 添加项目经历
+ * 添加校园经历
  *
  * @param resumeId - 简历 ID
- * @param data - 项目经历数据
- * @returns 添加的项目经历
+ * @param data - 校园经历数据
+ * @returns 添加的校园经历
  */
 export async function addProject(
   resumeId: number,
@@ -435,12 +435,12 @@ export async function addProject(
 }
 
 /**
- * 更新项目经历
+ * 更新校园经历
  *
  * @param resumeId - 简历 ID
- * @param projectId - 项目经历 ID
+ * @param projectId - 校园经历 ID
  * @param data - 更新的数据
- * @returns 更新后的项目经历
+ * @returns 更新后的校园经历
  */
 export async function updateProject(
   resumeId: number,
@@ -457,10 +457,10 @@ export async function updateProject(
 }
 
 /**
- * 删除项目经历
+ * 删除校园经历
  *
  * @param resumeId - 简历 ID
- * @param projectId - 项目经历 ID
+ * @param projectId - 校园经历 ID
  */
 export async function deleteProject(
   resumeId: number,

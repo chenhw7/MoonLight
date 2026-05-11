@@ -24,7 +24,7 @@
            ▼               ▼               ▼               ▼
     ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐
     │ educations │  │work_exp... │  │  projects  │  │   skills   │
-    │ (教育经历)  │  │(工作/实习)  │  │ (项目经历)  │  │ (技能特长)  │
+    │ (教育经历)  │  │(工作/实习)  │  │ (校园经历)  │  │ (技能特长)  │
     └────────────┘  └────────────┘  └────────────┘  └────────────┘
            │               │               │               │
            │               │               │               │
@@ -123,7 +123,7 @@
 
 ---
 
-### 3.4 项目经历表 (projects)
+### 3.4 校园经历表 (projects)
 
 存储项目经验。
 
@@ -314,7 +314,7 @@ CREATE TABLE work_experiences (
 CREATE INDEX idx_work_exp_resume_id ON work_experiences(resume_id);
 CREATE INDEX idx_work_exp_type ON work_experiences(exp_type);
 
--- 项目经历表
+-- 校园经历表
 CREATE TABLE projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     resume_id INTEGER NOT NULL,
@@ -401,7 +401,7 @@ CREATE INDEX idx_social_links_resume_id ON social_links(resume_id);
 - 一个用户(user)可以有多个简历(resume)
 - 一个简历(resume)可以有多条教育经历(education)
 - 一个简历(resume)可以有多条工作/实习经历(work_experience)
-- 一个简历(resume)可以有多条项目经历(project)
+- 一个简历(resume)可以有多条校园经历(project)
 - 一个简历(resume)可以有多条技能(skill)
 - 一个简历(resume)可以有多条语言能力(language)
 - 一个简历(resume)可以有多条获奖经历(award)

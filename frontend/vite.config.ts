@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => {
       // 文件监听配置
       watch: {
         // 如果在 WSL 中运行且访问 Windows 文件，取消下面的注释
-        // usePolling: true,
-        // interval: 1000,
+        usePolling: true,
+        interval: 1000,
       },
       proxy: {
         '/api': {

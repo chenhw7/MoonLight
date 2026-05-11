@@ -286,27 +286,29 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 />
               )}
               {/* 第一行：公司 · 职位 · 部门 | 时间 | 地点 */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '4px',
-                  width: '100%',
-                }}
-              >
-                <div style={{ fontSize: '13px', color: '#000000', fontWeight: 600 }}>
-                  {work.company_name}
-                  <span style={{ fontWeight: 'normal', color: '#000000' }}>
-                    {' '}· {work.position}
-                    {work.department && ` · ${work.department}`}
+              {(work.company_name || work.position || work.department || work.start_date || work.end_date) && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '4px',
+                    width: '100%',
+                  }}
+                >
+                  <div style={{ fontSize: '13px', color: '#000000', fontWeight: 600 }}>
+                    {work.company_name}
+                    <span style={{ fontWeight: 'normal', color: '#000000' }}>
+                      {' '}· {work.position}
+                      {work.department && ` · ${work.department}`}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '13px', color: '#000000' }}>
+                    {formatChineseDate(work.start_date)} - {work.is_current ? '至今' : formatChineseDate(work.end_date)}
                   </span>
                 </div>
-                <span style={{ fontSize: '13px', color: '#000000' }}>
-                  {formatChineseDate(work.start_date)} - {work.is_current ? '至今' : formatChineseDate(work.end_date)}
-                </span>
-              </div>
+              )}
               
               {/* 技术栈 */}
               {work.tech_stack && (
@@ -348,10 +350,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         </section>
       )}
 
-      {/* 项目经历 */}
+      {/* 校园经历 */}
       {data.projects.length > 0 && (
         <section style={{ marginBottom: '14px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
-          {renderSectionTitle('项目经历')}
+          {renderSectionTitle('校园经历')}
           {data.projects.map((project, index) => (
             <div key={index} style={{ marginBottom: index < data.projects.length - 1 ? '16px' : '10px', pageBreakInside: 'avoid', width: '100%', overflow: 'hidden' }}>
               {index > 0 && (
@@ -461,9 +463,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                   </span>
                 )}
                 {award.description && (
-                  <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px', whiteSpace: 'pre-wrap' }}>
+                  <span style={{ fontSize: '13px', color: '#000000', marginLeft: '8px' }}>
                     {parseBoldText(award.description)}
-                  </div>
+                  </span>
                 )}
               </div>
             ))}
@@ -471,10 +473,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         </section>
       )}
 
-      {/* 技能特长 */}
+      {/* 爱好特长 */}
       {data.skills.length > 0 && (
         <section style={{ marginBottom: '14px', pageBreakInside: 'avoid' }}>
-          {renderSectionTitle('技能特长')}
+          {renderSectionTitle('爱好特长')}
           <div style={{ fontSize: '13px', color: '#000000', lineHeight: '1.8' }}>
             {data.skills.map((skill, index) => (
               <span key={index}>
@@ -538,7 +540,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               overflow: 'hidden',
             }}
           >
-            {data.self_evaluation}
+            {parseBoldText(data.self_evaluation)}
           </p>
         </section>
       )}

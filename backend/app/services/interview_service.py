@@ -500,7 +500,7 @@ class PromptService:
     # 模式说明
     MODE_INSTRUCTIONS = {
         "basic_knowledge": "重点考察基础知识：算法、数据结构、计算机网络、操作系统等",
-        "project_deep_dive": "深入挖掘项目经历：项目背景、技术选型、个人贡献、遇到的问题和解决方案",
+        "project_deep_dive": "深入挖掘校园经历：项目背景、技术选型、个人贡献、遇到的问题和解决方案",
         "coding": "考察编程能力：算法实现、代码质量、边界条件处理",
         "technical_deep_dive": "深入考察技术能力：架构设计、技术选型、性能优化、故障排查",
         "technical_qa": "技术问答：框架原理、设计模式、分布式系统、微服务架构",
@@ -598,9 +598,9 @@ class PromptService:
                 if work.achievements:
                     parts.append(f"  成果: {work.achievements}")
 
-        # 项目经历
+        # 校园经历
         if resume.projects:
-            parts.append("\n项目经历:")
+            parts.append("\n校园经历:")
             for proj in resume.projects:
                 parts.append(f"- {proj.project_name}: {proj.description}")
 

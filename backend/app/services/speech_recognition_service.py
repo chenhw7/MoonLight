@@ -6,7 +6,7 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import structlog
 
@@ -15,7 +15,9 @@ logger = structlog.get_logger()
 # 设置国内镜像（在导入 faster_whisper 之前）
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
-from faster_whisper import WhisperModel
+# 延迟导入 faster_whisper，避免启动时加载
+if TYPE_CHECKING:
+    from faster_whisper import WhisperModel
 
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -54,7 +56,7 @@ class SpeechRecognitionService:
     """
 
     _instance: Optional["SpeechRecognitionService"] = None
-    _model: Optional[WhisperModel] = None
+    _model: Optional["WhisperModel"] = None
 
     def __new__(cls) -> "SpeechRecognitionService":
         """单例模式."""
@@ -63,9 +65,17 @@ class SpeechRecognitionService:
         return cls._instance
 
     def __init__(self) -> None:
-        """初始化语音识别服务."""
+        """初始化语音识别服务（延迟加载模型）."""
+        # 不在 __init__ 中加载模型，改为懒加载
+        pass
+
+    def _load_model(self) -> None:
+        """加载语音识别模型（懒加载）."""
         if self._model is not None:
             return
+
+        # 运行时导入，避免启动时加载
+        from faster_whisper import WhisperModel
 
         logger.info("正在加载语音识别模型...")
 
@@ -73,7 +83,7 @@ class SpeechRecognitionService:
             model_path = get_model_path()
             local_files_only = LOCAL_MODEL_PATH.exists()
 
-            # 使用 base 模型，CPU + INT8 量化
+            # 使用 base 模型，CPU + INT8 量化模式
             # 内存占用约 1GB，30秒音频处理时间约 1-2 秒
             self._model = WhisperModel(
                 model_path,
@@ -117,6 +127,9 @@ class SpeechRecognitionService:
         import time
 
         start_time = time.time()
+
+        # 懒加载模型（首次调用时加载）
+        self._load_model()
 
         # 创建临时文件保存音频
         suffix = Path(filename).suffix if filename else ".webm"
@@ -201,6 +214,9 @@ class SpeechRecognitionService:
         import time
 
         start_time = time.time()
+
+        # 懒加载模型（首次调用时加载）
+        self._load_model()
 
         logger.info("开始识别本地文件", file_path=file_path, language=language)
 
