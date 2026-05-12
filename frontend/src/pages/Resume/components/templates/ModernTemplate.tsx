@@ -111,7 +111,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
       <span
         style={{
           flex: 1,
-          height: '1px',
+          height: '0.5px',
           backgroundColor: themeColor,
           marginLeft: '4px',
         }}
