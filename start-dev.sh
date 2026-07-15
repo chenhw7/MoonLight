@@ -6,6 +6,9 @@
 #   cd /path/to/project
 #   ./start-dev.sh
 #
+# 启动后请在 Windows 浏览器访问: http://localhost:3000/
+# 前端由 Vite 开发服务器提供，后端 API 通过 Vite 代理转发
+#
 
 set -e  # 遇到错误立即退出
 
@@ -111,9 +114,9 @@ fi
 echo -e "${YELLOW}[5/5] 启动前端开发服务器...${NC}"
 echo ""
 echo -e "${CYAN}======================================${NC}"
-echo -e "${CYAN}  前端: http://localhost:3000${NC}"
-echo -e "${CYAN}  后端: http://${WSL_IP}:8000${NC}"
-echo -e "${CYAN}  API 文档: http://${WSL_IP}:8000/docs${NC}"
+echo -e "${GREEN}  🌐 请访问: http://localhost:3000${NC}"
+echo -e "${CYAN}  后端 API: http://localhost:8000${NC}"
+echo -e "${CYAN}  API 文档: http://localhost:8000/docs${NC}"
 echo -e "${CYAN}======================================${NC}"
 echo ""
 echo -e "${YELLOW}提示: 按 Ctrl+C 可停止前端服务${NC}"

@@ -130,7 +130,7 @@ const ResumeView: React.FC = () => {
             <ArrowLeft className="w-4 h-4 mr-1" />
             返回
           </Button>
-          <h1 className="text-lg font-semibold text-gray-900">{resume.resume_name || '简历预览'}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{resume.title || '简历预览'}</h1>
         </div>
 
         <div className="flex items-center gap-2">

@@ -223,7 +223,7 @@ const ResumeCreate: React.FC = () => {
     isDirty,
     isSaving,
     isPreviewOpen,
-    resumeId,
+    resumeId: _resumeId,
     saveResume,
     loadResume,
     resetForm,
@@ -273,7 +273,7 @@ const ResumeCreate: React.FC = () => {
           prevDataRef.current = DEFAULT_RESUME_DATA;
         } else {
           // 如果是草稿，初始化基准数据为当前表单值
-          prevDataRef.current = methods.getValues();
+          prevDataRef.current = methods.getValues() as ResumeFormData;
         }
       }
     };

@@ -14,7 +14,7 @@ import { z } from 'zod';
 export type ResumeType = 'campus' | 'social';
 
 /** 学历 */
-export type EducationLevel = 'doctor' | 'master' | 'bachelor' | 'associate' | 'other';
+export type EducationLevel = 'doctor' | 'master' | 'bachelor' | 'associate' | 'other' | '';
 
 /** 求职状态 */
 export type JobStatus = 'active' | 'passive' | 'inactive' | 'unknown';
@@ -41,7 +41,7 @@ export interface Education {
   school_name: string;
   major: string;
   degree: EducationLevel;
-  start_date: string;
+  start_date?: string;
   end_date?: string | null;
   gpa?: string;
   ranking?: string; // 专业排名
@@ -56,7 +56,7 @@ export interface WorkExperience {
   company_name: string;
   position: string;
   department?: string; // 所属部门
-  start_date: string;
+  start_date?: string;
   end_date?: string | null;
   description: string;
   achievements?: string; // 主要成就
@@ -71,7 +71,7 @@ export interface Project {
   project_name: string;
   role: string;
   role_detail?: string; // 角色详情
-  start_date: string;
+  start_date?: string;
   end_date?: string | null;
   project_link?: string;
   description: string;
@@ -202,13 +202,13 @@ export type ResumeDetailResponse = ApiResponse<Resume>;
 // Zod 验证 Schema
 // ============================================================================
 
-/** 教育经历验证 Schema */
+/** 教育经历验证 Schema — 允许空值保存，仅校验长度和格式 */
 export const educationSchema = z.object({
   id: z.number().optional(),
-  school_name: z.string().min(1, '请输入学校名称').max(100, '学校名称过长'),
-  major: z.string().min(1, '请输入专业').max(100, '专业名称过长'),
-  degree: z.enum(['doctor', 'master', 'bachelor', 'associate', 'other']),
-  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
+  school_name: z.string().max(100, '学校名称过长'),
+  major: z.string().max(100, '专业名称过长'),
+  degree: z.enum(['doctor', 'master', 'bachelor', 'associate', 'other']).or(z.literal('')),
+  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
   gpa: z.string().max(20, 'GPA格式错误').optional(),
   ranking: z.string().max(50, '排名信息过长').optional(),
@@ -217,31 +217,31 @@ export const educationSchema = z.object({
   is_current: z.boolean().optional(),
 });
 
-/** 工作/实习经历验证 Schema */
+/** 工作/实习经历验证 Schema — 允许空值保存，仅校验长度和格式 */
 export const workExperienceSchema = z.object({
   id: z.number().optional(),
-  company_name: z.string().min(1, '请输入公司名称').max(100, '公司名称过长'),
-  position: z.string().min(1, '请输入职位名称').max(100, '职位名称过长'),
+  company_name: z.string().max(100, '公司名称过长'),
+  position: z.string().max(100, '职位名称过长'),
   department: z.string().max(50, '部门名称过长').optional(),
-  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
+  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
-  description: z.string().min(20, '工作描述至少20字').max(2000, '工作描述过长'),
+  description: z.string().max(2000, '工作描述过长'),
   achievements: z.string().max(2000, '成就描述过长').optional(),
   tech_stack: z.string().max(500, '技术栈过长').optional(),
   is_current: z.boolean().optional(),
   is_internship: z.boolean().optional(),
 });
 
-/** 校园经历验证 Schema */
+/** 校园经历验证 Schema — 允许空值保存，仅校验长度和格式 */
 export const projectSchema = z.object({
   id: z.number().optional(),
-  project_name: z.string().min(1, '请输入项目名称').max(100, '项目名称过长'),
-  role: z.string().min(1, '请输入项目角色').max(100, '角色名称过长'),
+  project_name: z.string().max(100, '项目名称过长'),
+  role: z.string().max(100, '角色名称过长'),
   role_detail: z.string().max(500, '角色详情过长').optional(),
-  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误'),
+  start_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
   end_date: z.union([z.string().regex(/^\d{4}-\d{2}$/), z.null()]).optional(),
   project_link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
-  description: z.string().min(20, '项目描述至少20字').max(2000, '项目描述过长'),
+  description: z.string().max(2000, '项目描述过长'),
   tech_stack: z.string().max(500, '技术栈过长').optional(),
   is_current: z.boolean().optional(),
 });
@@ -260,40 +260,40 @@ export const languageSchema = z.object({
   proficiency: z.enum(['cet4', 'cet6', 'tem4', 'tem8', 'ielts', 'toefl', 'proficiency', 'native']),
 });
 
-/** 获奖经历验证 Schema */
+/** 获奖经历验证 Schema — 允许空值保存 */
 export const awardSchema = z.object({
   id: z.number().optional(),
-  award_name: z.string().min(1, '请输入获奖名称').max(100, '获奖名称过长'),
+  award_name: z.string().max(100, '获奖名称过长'),
   award_date: z.string().regex(/^\d{4}-\d{2}$/, '日期格式错误').optional().or(z.literal('')),
   description: z.string().max(500, '描述过长').optional(),
 });
 
-/** 作品验证 Schema */
+/** 作品验证 Schema — 允许空值保存 */
 export const portfolioSchema = z.object({
   id: z.number().optional(),
-  work_name: z.string().min(1, '请输入作品名称').max(100, '作品名称过长'),
+  work_name: z.string().max(100, '作品名称过长'),
   work_link: z.string().url('请输入正确的URL').max(500, '链接过长').optional().or(z.literal('')),
   attachment_url: z.string().max(500, '附件路径过长').optional(),
   description: z.string().max(1000, '描述过长').optional(),
 });
 
-/** 社交链接验证 Schema */
+/** 社交链接验证 Schema — 允许空值保存 */
 export const socialLinkSchema = z.object({
   id: z.number().optional(),
-  platform: z.enum(['github', 'linkedin', 'zhihu', 'juejin', 'blog', 'website', 'other']),
-  url: z.string().min(1, '请输入链接').max(500, '链接过长'),
+  platform: z.enum(['github', 'linkedin', 'zhihu', 'juejin', 'blog', 'website', 'other']).optional().default('other'),
+  url: z.string().max(500, '链接过长'),
 });
 
-/** 简历基础信息验证 Schema */
+/** 简历基础信息验证 Schema — 允许空值保存，仅校验格式和长度 */
 export const resumeBaseSchema = z.object({
-  title: z.string().min(1, '请输入简历标题').max(100, '标题过长'),
+  title: z.string().max(100, '标题过长'),
   resume_type: z.enum(['campus', 'social']),
-  full_name: z.string().min(2, '姓名至少2个字').max(20, '姓名过长'),
-  phone: z.string().regex(/^1[3-9]\d{9}$/, '请输入正确的手机号'),
-  email: z.string().email('请输入正确的邮箱'),
+  full_name: z.string().max(20, '姓名过长'),
+  phone: z.string().regex(/^1[3-9]\d{9}$/, '请输入正确的手机号').or(z.literal('')),
+  email: z.string().email('请输入正确的邮箱').or(z.literal('')),
   avatar: z.string().optional(),  // 头像为可选
   avatar_ratio: z.enum(['1.4', '1']).optional(),  // 头像比例
-  current_city: z.string().min(1, '请选择当前居住地').max(100, '地址过长').optional(),
+  current_city: z.string().max(100, '地址过长').optional(),
   self_evaluation: z.string().max(1000, '自我评价过长').optional(),
 
   // 新增字段验证
@@ -307,9 +307,9 @@ export const resumeBaseSchema = z.object({
   application_status: z.enum(['preparing', 'submitted', 'interviewing', 'offer', 'rejected']).optional(),
 });
 
-/** 完整简历验证 Schema */
+/** 完整简历验证 Schema — 所有子项均为可选，不强制最少条数 */
 export const resumeSchema = resumeBaseSchema.extend({
-  educations: z.array(educationSchema).min(1, '请至少添加一条教育经历'),
+  educations: z.array(educationSchema),
   work_experiences: z.array(workExperienceSchema),
   projects: z.array(projectSchema),
   skills: z.array(skillSchema),

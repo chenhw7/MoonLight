@@ -61,7 +61,7 @@ class EducationBase(BaseModel):
     """教育经历基础模型。支持草稿保存（空值）。"""
 
     school_name: str = Field(default="", max_length=100)
-    degree: str = Field(default="bachelor", pattern=r"^(doctor|master|bachelor|associate|other)$")
+    degree: str = Field(default="bachelor", pattern=r"^(doctor|master|bachelor|associate|other|)$")
     major: str = Field(default="", max_length=100)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -86,9 +86,9 @@ class EducationCreate(EducationBase):
 class EducationUpdate(BaseModel):
     """更新教育经历请求模型。"""
 
-    school_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    degree: Optional[str] = Field(None, pattern=r"^(doctor|master|bachelor|associate|other)$")
-    major: Optional[str] = Field(None, min_length=1, max_length=100)
+    school_name: Optional[str] = Field(None, max_length=100)
+    degree: Optional[str] = Field(None, pattern=r"^(doctor|master|bachelor|associate|other|)$")
+    major: Optional[str] = Field(None, max_length=100)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     gpa: Optional[str] = Field(None, max_length=20)
@@ -113,7 +113,7 @@ class EducationResponse(BaseModel):
     school_name: str
     degree: str
     major: str
-    start_date: str
+    start_date: Optional[str] = None
     end_date: Optional[str] = None
     gpa: Optional[str] = None
     courses: Optional[str] = None
@@ -165,12 +165,12 @@ class WorkExperienceCreate(WorkExperienceBase):
 class WorkExperienceUpdate(BaseModel):
     """更新工作/实习经历请求模型。"""
 
-    company_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    position: Optional[str] = Field(None, min_length=1, max_length=100)
+    company_name: Optional[str] = Field(None, max_length=100)
+    position: Optional[str] = Field(None, max_length=100)
     department: Optional[str] = Field(None, max_length=100)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    description: Optional[str] = Field(None, min_length=1)
+    description: Optional[str] = None
     achievements: Optional[str] = None
     tech_stack: Optional[str] = Field(None, max_length=500)
     is_current: Optional[bool] = None
@@ -192,7 +192,7 @@ class WorkExperienceResponse(BaseModel):
     company_name: str
     position: str
     department: Optional[str] = None
-    start_date: str
+    start_date: Optional[str] = None
     end_date: Optional[str] = None
     description: str
     achievements: Optional[str] = None
@@ -264,13 +264,13 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(BaseModel):
     """更新校园经历请求模型。"""
 
-    project_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    role: Optional[str] = Field(None, min_length=1, max_length=100)
+    project_name: Optional[str] = Field(None, max_length=100)
+    role: Optional[str] = Field(None, max_length=100)
     role_detail: Optional[str] = Field(None, max_length=200)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     project_link: Optional[str] = Field(None, max_length=500)
-    description: Optional[str] = Field(None, min_length=1)
+    description: Optional[str] = None
     tech_stack: Optional[str] = Field(None, max_length=500)
     is_current: Optional[bool] = None
     sort_order: Optional[int] = None
@@ -290,7 +290,7 @@ class ProjectResponse(BaseModel):
     project_name: str
     role: str
     role_detail: Optional[str] = None
-    start_date: str
+    start_date: Optional[str] = None
     end_date: Optional[str] = None
     project_link: Optional[str] = None
     description: str
@@ -324,7 +324,7 @@ class SkillCreate(SkillBase):
 class SkillUpdate(BaseModel):
     """更新技能请求模型。"""
 
-    skill_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    skill_name: Optional[str] = Field(None, max_length=50)
     proficiency: Optional[str] = Field(None, pattern=r"^(expert|proficient|competent|beginner)$")
     sort_order: Optional[int] = None
 
@@ -394,7 +394,7 @@ class AwardCreate(AwardBase):
 class AwardUpdate(BaseModel):
     """更新获奖经历请求模型。"""
 
-    award_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    award_name: Optional[str] = Field(None, max_length=200)
     award_date: Optional[date] = None
     description: Optional[str] = None
     sort_order: Optional[int] = None
@@ -444,7 +444,7 @@ class PortfolioCreate(PortfolioBase):
 class PortfolioUpdate(BaseModel):
     """更新作品请求模型。"""
 
-    work_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    work_name: Optional[str] = Field(None, max_length=100)
     work_link: Optional[str] = Field(None, max_length=500)
     attachment_url: Optional[str] = Field(None, max_length=500)
     description: Optional[str] = None
@@ -478,8 +478,8 @@ class SocialLinkCreate(SocialLinkBase):
 class SocialLinkUpdate(BaseModel):
     """更新社交账号请求模型。"""
 
-    platform: Optional[str] = Field(None, min_length=1, max_length=50)
-    url: Optional[str] = Field(None, min_length=1, max_length=500)
+    platform: Optional[str] = Field(None, max_length=50)
+    url: Optional[str] = Field(None, max_length=500)
 
 
 class SocialLinkResponse(SocialLinkBase):
@@ -559,9 +559,9 @@ class ResumeFullUpdate(BaseModel):
     # 基础信息（全部可选）
     resume_type: Optional[str] = Field(None, pattern=r"^(campus|social)$")
     title: Optional[str] = Field(None, max_length=100)
-    full_name: Optional[str] = Field(None, min_length=1, max_length=50)
-    phone: Optional[str] = Field(None, min_length=1, max_length=20)
-    email: Optional[str] = Field(None, min_length=1, max_length=100)
+    full_name: Optional[str] = Field(None, max_length=50)
+    phone: Optional[str] = Field(None, max_length=20)
+    email: Optional[str] = Field(None, max_length=100)
     avatar: Optional[str] = None
     avatar_ratio: Optional[str] = Field(None, pattern=r"^(1\.4|1)$")
     current_city: Optional[str] = Field(None, max_length=50)
@@ -591,8 +591,8 @@ class ResumeFullUpdate(BaseModel):
     @field_validator("phone")
     @classmethod
     def validate_phone(cls, v):
-        """验证手机号格式。"""
-        if v is None:
+        """验证手机号格式（允许空值以支持草稿保存）。"""
+        if v is None or v == "":
             return v
         import re
         if not re.match(r"^1[3-9]\d{9}$", v):

@@ -24,8 +24,8 @@ export const useResumeHelpers = () => {
      * @param value - 学历值
      * @returns 学历标签
      */
-    const getEducationLabel = (value: string) => {
-      return EDUCATION_LEVELS.find((item) => item.value === value)?.label || value;
+    const getEducationLabel = (value?: string) => {
+      return EDUCATION_LEVELS.find((item) => item.value === value)?.label || value || '';
     };
 
     /**

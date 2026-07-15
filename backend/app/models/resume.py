@@ -104,10 +104,10 @@ class Education(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    school_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    degree: Mapped[str] = mapped_column(String(20), nullable=False)
-    major: Mapped[str] = mapped_column(String(100), nullable=False)
-    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    school_name: Mapped[Optional[str]] = mapped_column(String(100))
+    degree: Mapped[Optional[str]] = mapped_column(String(20))
+    major: Mapped[Optional[str]] = mapped_column(String(100))
+    start_date: Mapped[Optional[date]] = mapped_column(Date)
     end_date: Mapped[Optional[date]] = mapped_column(Date)
     gpa: Mapped[Optional[str]] = mapped_column(String(20))
     courses: Mapped[Optional[str]] = mapped_column(Text)
@@ -126,12 +126,12 @@ class WorkExperience(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    exp_type: Mapped[str] = mapped_column(String(20), nullable=False)
-    company_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    position: Mapped[str] = mapped_column(String(100), nullable=False)
-    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    exp_type: Mapped[str] = mapped_column(String(20), default="work")
+    company_name: Mapped[Optional[str]] = mapped_column(String(100))
+    position: Mapped[Optional[str]] = mapped_column(String(100))
+    start_date: Mapped[Optional[date]] = mapped_column(Date)
     end_date: Mapped[Optional[date]] = mapped_column(Date)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
     department: Mapped[Optional[str]] = mapped_column(String(100))
     achievements: Mapped[Optional[str]] = mapped_column(Text)
     tech_stack: Mapped[Optional[str]] = mapped_column(String(500))
@@ -148,12 +148,12 @@ class Project(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    project_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    role: Mapped[str] = mapped_column(String(100), nullable=False)
-    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    project_name: Mapped[Optional[str]] = mapped_column(String(100))
+    role: Mapped[Optional[str]] = mapped_column(String(100))
+    start_date: Mapped[Optional[date]] = mapped_column(Date)
     end_date: Mapped[Optional[date]] = mapped_column(Date)
     project_link: Mapped[Optional[str]] = mapped_column(String(500))
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
     role_detail: Mapped[Optional[str]] = mapped_column(String(200))
     tech_stack: Mapped[Optional[str]] = mapped_column(String(500))
     is_current: Mapped[Optional[bool]] = mapped_column(default=False)
@@ -169,8 +169,8 @@ class Skill(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    skill_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    proficiency: Mapped[str] = mapped_column(String(20), nullable=False)
+    skill_name: Mapped[Optional[str]] = mapped_column(String(50))
+    proficiency: Mapped[Optional[str]] = mapped_column(String(20))
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="skills")
@@ -183,8 +183,8 @@ class Language(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    language: Mapped[str] = mapped_column(String(20), nullable=False)
-    proficiency: Mapped[str] = mapped_column(String(50), nullable=False)
+    language: Mapped[Optional[str]] = mapped_column(String(20))
+    proficiency: Mapped[Optional[str]] = mapped_column(String(50))
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="languages")
 
@@ -196,7 +196,7 @@ class Award(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    award_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    award_name: Mapped[Optional[str]] = mapped_column(String(200))
     award_date: Mapped[Optional[date]] = mapped_column(Date)
     description: Mapped[Optional[str]] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
@@ -211,7 +211,7 @@ class Portfolio(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    work_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    work_name: Mapped[Optional[str]] = mapped_column(String(100))
     work_link: Mapped[Optional[str]] = mapped_column(String(500))
     attachment_url: Mapped[Optional[str]] = mapped_column(String(500))
     description: Mapped[Optional[str]] = mapped_column(Text)
@@ -227,7 +227,7 @@ class SocialLink(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), nullable=False)
-    platform: Mapped[str] = mapped_column(String(50), nullable=False)
-    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    platform: Mapped[Optional[str]] = mapped_column(String(50))
+    url: Mapped[Optional[str]] = mapped_column(String(500))
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="social_links")

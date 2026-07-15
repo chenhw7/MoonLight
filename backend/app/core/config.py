@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     email_password: str = ""  # QQ邮箱授权码
     email_sender: str = ""
 
+    # Static Files
+    frontend_dist_dir: str = "../frontend/dist"  # 前端构建产物目录，相对于 backend/ 目录
+
     # Logging
     log_level: str = "info"  # debug/info/warning/error/critical
     log_sqlalchemy_internal: bool = False  # 是否输出 SQLAlchemy 内部查询（pg_catalog等）

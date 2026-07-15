@@ -11,7 +11,7 @@ import { parseBoldText } from '@/utils/textFormat';
 
 interface ModernTemplateProps {
   data: ResumeFormData;
-  getEducationLabel: (value: string) => string;
+  getEducationLabel: (value?: string) => string;
   getProficiencyLabel: (value: string) => string;
   getLanguageLabel: (value: string) => string;
   getLanguageProficiencyLabel: (value: string) => string;
@@ -248,7 +248,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
                 </span>
               </div>
               <div style={{ fontSize: '13px', color: '#000000', marginTop: '2px' }}>
-                {edu.major} · {getEducationLabel(edu.degree)}
+                {edu.major} · {edu.degree ? getEducationLabel(edu.degree) : ''}
                 {(edu.gpa || edu.ranking || edu.honors) && (
                   <span style={{ color: '#000000', marginLeft: '8px' }}>
                     {edu.gpa && `GPA: ${edu.gpa}`}

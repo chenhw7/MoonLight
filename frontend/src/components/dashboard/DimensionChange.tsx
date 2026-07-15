@@ -6,7 +6,7 @@
 
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import type { DimensionChangeItem } from '@/types/dashboard';
-import { cn } from '@/lib/utils';
+// import { cn } from '@/lib/utils';
 
 interface DimensionChangeProps {
   /** 维度变化数据 */

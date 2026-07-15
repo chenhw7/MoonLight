@@ -4,7 +4,6 @@
 """
 
 from typing import List, Optional
-from datetime import date
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -215,17 +214,15 @@ class ResumeService:
         return resume
 
     async def _save_sub_items(self, resume_id: int, data) -> None:
-        """保存简历子项数据。跳过关键字段为空的不完整子项。"""
-        # 教育经历 — 至少需要学校名
+        """保存简历子项数据。有什么存什么，不跳过任何条目。"""
+        # 教育经历 — 有什么存什么
         for i, edu in enumerate(data.educations or []):
-            if not edu.school_name:
-                continue
             self.db.add(Education(
                 resume_id=resume_id,
-                school_name=edu.school_name,
+                school_name=edu.school_name or "",
                 degree=edu.degree or "bachelor",
                 major=edu.major or "",
-                start_date=edu.start_date or date.today(),
+                start_date=edu.start_date,
                 end_date=edu.end_date,
                 gpa=edu.gpa,
                 courses=edu.courses,
@@ -235,15 +232,13 @@ class ResumeService:
                 sort_order=getattr(edu, 'sort_order', i),
             ))
 
-        # 工作/实习经历 — 至少需要公司名或工作描述
+        # 工作/实习经历 — 有什么存什么
         for i, exp in enumerate(data.work_experiences or []):
-            if not exp.company_name and not exp.description:
-                continue
             exp_type = "internship" if getattr(exp, 'is_internship', False) else "work"
             self.db.add(WorkExperience(
                 resume_id=resume_id,
                 exp_type=exp_type,
-                company_name=exp.company_name,
+                company_name=exp.company_name or "",
                 position=exp.position or "",
                 department=exp.department,
                 start_date=exp.start_date,
@@ -255,13 +250,11 @@ class ResumeService:
                 sort_order=getattr(exp, 'sort_order', i),
             ))
 
-        # 校园经历 — 至少需要项目名
+        # 校园经历 — 有什么存什么
         for i, proj in enumerate(data.projects or []):
-            if not proj.project_name:
-                continue
             self.db.add(Project(
                 resume_id=resume_id,
-                project_name=proj.project_name,
+                project_name=proj.project_name or "",
                 role=proj.role or "",
                 role_detail=proj.role_detail,
                 start_date=proj.start_date,
@@ -273,59 +266,49 @@ class ResumeService:
                 sort_order=getattr(proj, 'sort_order', i),
             ))
 
-        # 技能 — 至少需要技能名
+        # 技能 — 有什么存什么
         for i, skill in enumerate(data.skills or []):
-            if not skill.skill_name:
-                continue
             self.db.add(Skill(
                 resume_id=resume_id,
-                skill_name=skill.skill_name,
+                skill_name=skill.skill_name or "",
                 proficiency=skill.proficiency or "competent",
                 sort_order=getattr(skill, 'sort_order', i),
             ))
 
-        # 语言能力 — 至少需要语言名
+        # 语言能力 — 有什么存什么
         for lang in (data.languages or []):
-            if not lang.language:
-                continue
             self.db.add(Language(
                 resume_id=resume_id,
-                language=lang.language,
+                language=lang.language or "",
                 proficiency=lang.proficiency or "",
             ))
 
-        # 获奖经历 — 至少需要奖项名
+        # 获奖经历 — 有什么存什么
         for i, award in enumerate(data.awards or []):
-            if not award.award_name:
-                continue
             self.db.add(Award(
                 resume_id=resume_id,
-                award_name=award.award_name,
+                award_name=award.award_name or "",
                 award_date=award.award_date,
                 description=award.description,
                 sort_order=getattr(award, 'sort_order', i),
             ))
 
-        # 作品 — 至少需要作品名
+        # 作品 — 有什么存什么
         for i, portfolio in enumerate(data.portfolios or []):
-            if not portfolio.work_name:
-                continue
             self.db.add(Portfolio(
                 resume_id=resume_id,
-                work_name=portfolio.work_name,
+                work_name=portfolio.work_name or "",
                 work_link=portfolio.work_link,
                 attachment_url=portfolio.attachment_url,
                 description=portfolio.description,
                 sort_order=getattr(portfolio, 'sort_order', i),
             ))
 
-        # 社交链接 — 至少需要平台名
+        # 社交链接 — 有什么存什么
         for social in (data.social_links or []):
-            if not social.platform:
-                continue
             self.db.add(SocialLink(
                 resume_id=resume_id,
-                platform=social.platform,
+                platform=social.platform or "",
                 url=social.url or "",
             ))
 

@@ -5,6 +5,7 @@
 
 # Build outputs
 **/dist/
+!frontend/dist/
 **/dist-ssr/
 *.local
 

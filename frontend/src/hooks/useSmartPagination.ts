@@ -77,9 +77,7 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
         let currentPartChildren: string[] = [];
         let currentPartHeight = mt + wrapperOverhead; // 初始高度包含 margin-top 和容器自身
         
-        // 记录标题，用于分页时在下一页重现标题
-        let headerHTML = '';
-        let headerHeight = 0;
+        // 记录标题，用于分页时在下一页重现标题（当前未启用）
 
         for (let i = 0; i < children.length; i++) {
           const child = children[i];
@@ -91,8 +89,7 @@ export function useSmartPagination(children: React.ReactNode, pageHeightPx: numb
 
           // 记录第一个元素是否为标题
           if (i === 0 && /^H[1-6]$/i.test(child.tagName)) {
-            headerHTML = child.outerHTML;
-            headerHeight = childTotalH;
+            // 标题记录逻辑暂未启用
           }
 
           // 检查当前子元素是否放入当前页

@@ -256,13 +256,13 @@ import { useEffect, useRef } from 'react';
  * 每30秒自动保存草稿到服务器
  */
 export function useAutoSave() {
-  const { formData, isDirty, saveResume } = useResumeStore();
+  const { isDirty, saveResume } = useResumeStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // 启动自动保存定时器
     intervalRef.current = setInterval(() => {
-      if (isDirty && formData.title) {
+      if (isDirty) {
         logger.info('Auto-saving resume');
         saveResume().catch((error) => {
           logger.error('Auto-save failed', { error });
@@ -275,7 +275,7 @@ export function useAutoSave() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isDirty, formData.title, saveResume]);
+  }, [isDirty, saveResume]);
 
   return { isAutoSaving: !!intervalRef.current };
 }

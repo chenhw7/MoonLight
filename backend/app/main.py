@@ -6,11 +6,13 @@
 import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
@@ -302,22 +304,35 @@ async def health_check() -> dict:
     }
 
 
-# 根路径
-@app.get("/", tags=["根路径"])
-async def root() -> dict:
-    """根路径接口。
+# --- 静态文件服务与 SPA 路由 ---
+# 注意：注册顺序至关重要！FastAPI/Starlette 按注册顺序匹配路由。
+# StaticFiles 挂载在 /assets 前缀，catch-all 路由处理 SPA 回退。
+# 不能将 StaticFiles 挂载在 "/" 上，因为 Mount("/") 会匹配所有路径，
+# 导致 catch-all SPA 回退路由永远不会被触发。
+_frontend_dist = Path(__file__).resolve().parent.parent / settings.frontend_dist_dir
+_index_path = _frontend_dist / "index.html"
 
-    返回应用基本信息。
+# 挂载静态资源目录（JS/CSS/图片等由 Vite 构建到 dist/assets/）
+if (_frontend_dist / "assets").is_dir():
+    logger.info("检测到前端静态资源，挂载 /assets 目录", dist_dir=str(_frontend_dist))
+    app.mount("/assets", StaticFiles(directory=str(_frontend_dist / "assets")), name="static-assets")
 
-    Returns:
-        dict: 应用信息
+# SPA catch-all 路由：处理根路径和前端客户端路由（如 /login, /resumes 等）
+# 静态资源由上面的 /assets mount 优先处理，只有非静态资源的请求才会到这里。
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa_fallback(full_path: str):
+    """SPA 回退路由。
 
-    Example:
-        >>> GET /
-        {"message": "Welcome to MoonLight API", "version": "1.0.0"}
+    将未匹配的路径请求返回 index.html，让前端客户端路由处理。
+    API 路由和静态文件在此路由之前注册，不会受到影响。
     """
-    return {
-        "message": "Welcome to MoonLight API",
-        "version": settings.app_version,
-        "docs": "/docs" if settings.is_development else None,
-    }
+    if _index_path.exists():
+        return FileResponse(_index_path)
+    # 没有前端产物时返回 API 欢迎信息
+    return JSONResponse(
+        content={
+            "message": "Welcome to MoonLight API",
+            "version": settings.app_version,
+            "docs": "/docs" if settings.is_development else None,
+        }
+    )

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { createLogger } from '@/utils/logger';
 import { authApi } from '@/services/auth';
 import { useAuthStore } from '@/stores/authStore';
-import type { AuthResponse, ApiResponse } from '@/types/auth';
+import type { ApiResponse } from '@/types/auth';
 
 const logger = createLogger('RegisterForm');
 const CODE_LENGTH = 6;

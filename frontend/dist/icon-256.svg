@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bgGradient256" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#7168d6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="moonGradient256" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="50%" style="stop-color:#f0f0ff;stop-opacity:0.85" />
+      <stop offset="100%" style="stop-color:#e0e0f0;stop-opacity:0.7" />
+    </radialGradient>
+    <filter id="glow256">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="50" fill="url(#bgGradient256)"/>
+  <circle cx="128" cy="128" r="72" fill="url(#moonGradient256)" filter="url(#glow256)"/>
+  <circle cx="110" cy="110" r="12" fill="rgba(102,126,234,0.15)"/>
+  <circle cx="150" cy="140" r="9" fill="rgba(118,75,162,0.12)"/>
+  <circle cx="105" cy="150" r="6" fill="rgba(102,126,234,0.1)"/>
+</svg>

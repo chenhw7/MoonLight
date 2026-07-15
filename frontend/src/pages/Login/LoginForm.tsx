@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { createLogger } from '@/utils/logger';
 import { authApi } from '@/services/auth';
 import { useAuthStore } from '@/stores/authStore';
-import type { AuthResponse, ApiResponse } from '@/types/auth';
+import type { ApiResponse } from '@/types/auth';
 
 const logger = createLogger('LoginForm');
 

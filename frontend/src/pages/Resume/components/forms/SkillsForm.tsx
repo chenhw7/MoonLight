@@ -40,7 +40,7 @@ interface SkillsFormProps {
 /**
  * 技能与其他表单
  */
-const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode }) => {
+const SkillsForm: React.FC<SkillsFormProps> = ({ resumeMode: _resumeMode }) => {
   const { control, watch, setValue } = useFormContext<ResumeFormData>();
   const skills = watch('skills') || [];
   const languages = watch('languages') || [];

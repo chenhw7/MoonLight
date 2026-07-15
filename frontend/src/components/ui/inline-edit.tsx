@@ -25,7 +25,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
   onSave,
   validate,
   label,
-  placeholder = '点击编辑',
+  placeholder: _placeholder = '点击编辑',
   maxLength = 20,
   className,
 }) => {
