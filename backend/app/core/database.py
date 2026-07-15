@@ -17,22 +17,30 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# 创建异步引擎
-settings = get_settings()
-engine = create_async_engine(
-    settings.database_url,
-    echo=False,  # 关闭 SQL 语句日志，避免干扰业务日志
-    future=True,
-)
+# 延迟创建 engine 和 session factory，避免模块导入时立即加载 SQLAlchemy 全套组件（约 2 秒）
+# 它们在 init_db() 首次调用时才初始化，此时应用已进入 lifespan 阶段
+engine = None
+AsyncSessionLocal = None
 
-# 创建异步会话工厂
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autoflush=False,
-    autocommit=False,
-)
+
+def _ensure_engine():
+    """确保 engine 已创建（首次调用时初始化）。"""
+    global engine, AsyncSessionLocal
+    if engine is None:
+        settings = get_settings()
+        engine = create_async_engine(
+            settings.database_url,
+            echo=False,
+            future=True,
+        )
+        AsyncSessionLocal = async_sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
+        )
+        logger.info("Database engine created")
 
 # 声明基类
 Base = declarative_base()
@@ -53,6 +61,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         ...     result = await db.execute(select(User))
         ...     return result.scalars().all()
     """
+    _ensure_engine()
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -74,6 +83,7 @@ async def init_db() -> None:
     Example:
         >>> await init_db()
     """
+    _ensure_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database initialized")
@@ -87,5 +97,6 @@ async def close_db() -> None:
     Example:
         >>> await close_db()
     """
+    _ensure_engine()
     await engine.dispose()
     logger.info("Database connection closed")

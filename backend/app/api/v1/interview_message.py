@@ -12,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.ai_client import AIClient, AIClientFactory
-from app.core.database import get_db, AsyncSessionLocal
+from app.core.database import get_db
+import app.core.database as database
 from app.core.logging import get_logger
 from app.core.security import get_current_user
 from app.models.interview import InterviewSession
@@ -305,7 +306,7 @@ async def send_message_stream(
                 yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
 
             # 流式响应完成后，使用新的数据库会话保存AI消息
-            async with AsyncSessionLocal() as db_session:
+            async with database.AsyncSessionLocal() as db_session:
                 try:
                     # 重新获取session对象（使用新的会话）
                     from sqlalchemy import select

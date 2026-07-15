@@ -3,13 +3,13 @@
 封装 OpenAI 兼容接口的调用，支持流式和非流式响应。
 """
 
-from typing import AsyncGenerator, Optional
-
-import httpx
-from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionChunk
+from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
 from app.core.logging import get_logger
+
+if TYPE_CHECKING:
+    from openai import AsyncOpenAI
+    from openai.types.chat import ChatCompletionChunk
 
 logger = get_logger(__name__)
 
@@ -49,7 +49,11 @@ class AIClient:
         self.api_key = api_key
         self.timeout = timeout
 
-        self.client = AsyncOpenAI(
+        # 延迟导入 openai，避免启动时加载 524 个子模块（约 8 秒）
+        import httpx
+        from openai import AsyncOpenAI
+
+        self.client: AsyncOpenAI = AsyncOpenAI(
             base_url=self.base_url,
             api_key=self.api_key,
             timeout=httpx.Timeout(timeout),
@@ -91,7 +95,6 @@ class AIClient:
             )
 
             async for chunk in stream:
-                chunk: ChatCompletionChunk
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
 
